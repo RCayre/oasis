@@ -8,6 +8,7 @@ CFLAGS += -march=armv7-m
 CFLAGS += -ffreestanding
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
+CFLAGS += -O0
 
 INTERFACE := $(shell python3 scripts/detect_interface.py)
 
@@ -36,7 +37,7 @@ $(BUILD_DIR)/out.elf: $(SRC_DIR)/*.c $(BUILD_DIR)/hooks.c
 	arm-none-eabi-gcc $(SRC_DIR)/*.c $(BUILD_DIR)/hooks.c $(CFLAGS) -T $(CONF_DIR)/linker.ld $(CONF_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I include
 
 $(BUILD_DIR)/symbols.sym: $(BUILD_DIR)/out.elf
-	arm-none-eabi-nm -S $(BUILD_DIR)/out.elf | sort > $(BUILD_DIR)/symbols.sym	
+	arm-none-eabi-nm -S -a $(BUILD_DIR)/out.elf | sort > $(BUILD_DIR)/symbols.sym	
 	
 $(BUILD_DIR)/patches.csv: $(BUILD_DIR)/symbols.sym
 	python3 scripts/generate_patches.py $(BUILD_DIR)/out.elf $(BUILD_DIR)/symbols.sym $(CONF_DIR)/patch.conf $(BUILD_DIR)
@@ -51,10 +52,20 @@ clean:
 	rm -rf build
 
 attach:
-	@stty -F $(INTERFACE) 3000000
-	@btattach -B $(INTERFACE) &
-	@sleep 1
-	@hciconfig | grep hci1 -n1 | grep BD | awk '{print $$3" "$$4}'
+	sudo stty -F $(INTERFACE) 3000000
+	sudo btattach -B $(INTERFACE) &
+	sleep 1
+	sudo hciconfig | grep hci1 -n1 | grep BD | awk '{print $$3" "$$4}'
 
 detach:
-	@pkill btattach
+	sudo pkill btattach
+
+reset:
+	sudo hciconfig hci1 down
+	sudo hciconfig hci1 up
+
+dump:
+	sudo hcidump -i hci1 -R
+
+log:
+	sudo scripts/logger.py

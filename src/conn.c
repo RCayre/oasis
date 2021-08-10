@@ -1,6 +1,8 @@
 #include "hci.h"
 
-void on_conn() {
-	uint32_t data = 0x11223344;
-	send_hci(0xFF,(uint8_t*)&data, 4);
+#include "log.h"
+
+void on_conn(void * ptr) {
+  uint8_t addr[6] = { 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 };
+  log(addr, &ptr, 4);
 }

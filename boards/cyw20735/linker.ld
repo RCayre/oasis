@@ -6,13 +6,15 @@ MEMORY
 
 
 SECTIONS {
+  .rodata : {
+  } > lowrom 
+
+	.data : {
+	} > lowrom 
+
 	.text : {
 	} > lowrom
 	
-	.data : {
-	} > midrom
-	
 	.bss : {
 	} > midrom
-
 }

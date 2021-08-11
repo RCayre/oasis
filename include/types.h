@@ -28,6 +28,9 @@ typedef uint32_t                addr_t;
 typedef int32_t                 pid_t;
 typedef uint32_t                uint;
 
+struct metrics;
+typedef void (*callback_t)(struct metrics *);
+
 #define NULL (void*)0
 
 #endif

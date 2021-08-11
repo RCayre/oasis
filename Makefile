@@ -1,5 +1,7 @@
 BUILD_DIR := build
 SRC_DIR := src
+APP_DIR := app
+INCLUDE_DIR := include
 
 CFLAGS += -nostdlib
 CFLAGS += -nostartfiles
@@ -25,16 +27,28 @@ ifeq ($(PLATFORM),BOARD_CYW20735)
 	CONF_DIR := boards/cyw20735
 endif
 
+APPS = mitm
+APPS_SRC = $(foreach app,$(APPS), $(APP_DIR)/$(app)/app.c)
+APPS_OBJ = $(foreach app,$(APPS), $(BUILD_DIR)/$(APP_DIR)/$(app)/app.o)
+APPS_BUILD = $(foreach app,$(APPS), $(BUILD_DIR)/$(APP_DIR)/$(app))
+
 default : build
 
 create_builddir:
 	mkdir -p $(BUILD_DIR)
+	mkdir -p $(APPS_BUILD)
+
+$(BUILD_DIR)/$(APP_DIR)/%/app.o: $(APP_DIR)/%/app.c
+	arm-none-eabi-gcc $< $(CFLAGS) -c -o $@ -I $(INCLUDE_DIR) 
+
+$(BUILD_DIR)/app.c: $(APPS_OBJ)
+	python3 scripts/generate_app.py $(BUILD_DIR) $(APPS)
 	
 $(BUILD_DIR)/hooks.c: $(CONF_DIR)/patch.conf
 	python3 scripts/generate_hooks.py $(BUILD_DIR) $(CONF_DIR)/patch.conf
 	
-$(BUILD_DIR)/out.elf: $(SRC_DIR)/*.c $(BUILD_DIR)/hooks.c
-	arm-none-eabi-gcc $(SRC_DIR)/*.c $(BUILD_DIR)/hooks.c $(CFLAGS) -T $(CONF_DIR)/linker.ld $(CONF_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I include
+$(BUILD_DIR)/out.elf: $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c
+	arm-none-eabi-gcc $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CFLAGS) -T $(CONF_DIR)/linker.ld $(CONF_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR) 
 
 $(BUILD_DIR)/symbols.sym: $(BUILD_DIR)/out.elf
 	arm-none-eabi-nm -S -a $(BUILD_DIR)/out.elf | sort > $(BUILD_DIR)/symbols.sym	
@@ -51,6 +65,10 @@ patch: build
 clean:
 	rm -rf build
 
+disasm:
+	arm-none-eabi-objdump -D $(BUILD_DIR)/out.elf
+
+# cyw20735 management
 attach:
 	sudo stty -F $(INTERFACE) 3000000
 	sudo btattach -B $(INTERFACE) &
@@ -64,6 +82,7 @@ reset:
 	sudo hciconfig hci1 down
 	sudo hciconfig hci1 up
 
+# hci monitoring 
 dump:
 	sudo hcidump -i hci1 -R
 

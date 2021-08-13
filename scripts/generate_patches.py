@@ -26,11 +26,13 @@ if not os.path.isfile(romFile):
 sections = {
 "T": ".text", 
 "D": ".data",
+"d": ".data",
 "B": ".bss",
+"b": ".bss",
 "r": ".rodata"
 }
 
-included_sections = ["T", "D", "B", "r"]
+included_sections = ["T", "D", "d", "B", "b", "r"]
 
 output = ""
 functions = {}
@@ -52,18 +54,25 @@ with open(symFile,"r") as f:
                 # recover the code for that symbol
                 with open(buildDir+"/section.bin","rb") as content:
                     output += "ram,"+baseAddress+","+content.read().hex()+","+name+"\n"
-            elif section != "B":
-                # Anything other than .rodata and .bss
-                baseAddress, size, section, name = symbol.replace("\n","").split(" ")
-                baseAddress = "0x{:02x}".format(int(baseAddress,16))
-                # dump the code for that symbol
-                subprocess.call(["arm-none-eabi-objcopy", elfFile, "--dump-section", sections[section]+"."+name+"="+buildDir+"/section.bin"])
-                # recover the code for that symbol
-                with open(buildDir+"/section.bin","rb") as content:
-                    output += "ram,"+baseAddress+","+content.read().hex()+","+name+"\n"
+            else:
+                # Some symbols in the bss might has a size of 0 and it won't show up
+                if len(symbol.replace("\n", "").split(" ")) == 4:
+                    # Anything other than .rodata and .bss
+                    baseAddress, size, section, name = symbol.replace("\n","").split(" ")
+                    baseAddress = "0x{:02x}".format(int(baseAddress,16))
+                    if section == "B" or section == "b":
+                        # initialize with zeros
+                        zeros = "".join(["00" for i in range(int(size, 16))])
+                        output += "ram,"+baseAddress+","+zeros+","+name+"\n"
+                    else:
+                        # dump the code for that symbol
+                        subprocess.call(["arm-none-eabi-objcopy", elfFile, "--dump-section", sections[section]+"."+name+"="+buildDir+"/section.bin"])
+                        # recover the code for that symbol
+                        with open(buildDir+"/section.bin","rb") as content:
+                            output += "ram,"+baseAddress+","+content.read().hex()+","+name+"\n"
 
-                if section == "T":
-                    functions[name] = baseAddress
+                        if section == "T":
+                            functions[name] = baseAddress
 
 output2 = ""
 with open(romFile,"r") as f:

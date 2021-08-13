@@ -23,16 +23,31 @@ class BTComm:
             eventPayload = pkt.load
             index = 0
 
-            if eventPayload[0] != 0xAA:
-                return None
-
-            header = bool(eventPayload[1])
-            addr = ""
-            if header == 1:
-                addr = ":".join(["{:02x}".format(i) for i in eventPayload[2:8]][::-1])
-            
-            data = " ".join(["{:02x}".format(i) for i in eventPayload[8:][::-1]])
-            return (header, addr, data)
+            if eventPayload[0] == 0xAA:
+                # Handle user log
+                header = bool(eventPayload[1])
+                addr = ""
+                if header == 1:
+                    addr = ":".join(["{:02x}".format(i) for i in eventPayload[2:8]][::-1])
+                
+                data = " ".join(["{:02x}".format(i) for i in eventPayload[8:][::-1]])
+                return (header, addr, data)
+            elif eventPayload[0:2] == b"\x1b\x03":
+                # Handle stack trace
+                if eventPayload[2] == 0x2c:
+                    data = eventPayload[4:]
+                    values = [struct.unpack("<I", data[i:i+4])[0] for i in range(0, 64, 4)]
+                    if data[0] == 0x02:
+                        print(bcolors.BOLD + bcolors.FAIL + "Received Stack-Dump Event (contains %d registers):" % (data[1]))
+                        registers = (
+                            "pc: 0x%08x     lr: 0x%08x      sp:0x%08x       r0: 0x%08x      r1: 0x%08x\n"
+                            % (values[2], values[3], values[1], values[4], values[5])
+                        )
+                        registers += (
+                            "r2: 0x%08x     r3: 0x%08x      r4:0x%08x       r5: 0x%08x      r6: 0x%08x\n"
+                            % (values[6], values[7], values[8], values[9], values[10])
+                        )
+                        print(bcolors.WARNING + registers + bcolors.ENDC)
         return None
         
 addressFilter = None
@@ -60,7 +75,7 @@ try:
                 # Also skip messages with no address if filter-only
                 if filterOnly:
                     continue;
-                print(bcolors.WARNING, end="")
+                print(bcolors.ENDC + bcolors.BOLD, end="")
             print(data + bcolors.ENDC)
 except KeyboardInterrupt:
     exit() 

@@ -42,9 +42,9 @@ void hashmap_free(hashmap_t **hashmap);
  * @param hashmap   the hashmap involved in the operation
  * @param addr      the data's key in the hashmap
  * @param data      a pointer to the data to be inserted
- * @param size      the size of the data
+ *    This function takes ownership of data
  */
-int hashmap_put(hashmap_t *hashmap, uint8_t *addr, void *data, uint32_t size);
+int hashmap_put(hashmap_t *hashmap, uint8_t *addr, void *data);
 
 /**
  * @brief Deletes an entry from the hashmap

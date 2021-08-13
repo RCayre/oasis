@@ -49,7 +49,7 @@ void hashmap_free(hashmap_t **hashmap) {
   *hashmap = NULL;
 }
 
-int hashmap_put(hashmap_t *hashmap, uint8_t * addr, void *data, uint32_t size) {
+int hashmap_put(hashmap_t *hashmap, uint8_t * addr, void *data) {
   uint32_t key = hash(hashmap, addr);
 
   // Create the entry
@@ -57,16 +57,11 @@ int hashmap_put(hashmap_t *hashmap, uint8_t * addr, void *data, uint32_t size) {
   if(entry == NULL) {
     return -1;
   }
-    // Addr
+  // Addr
   memcpy(entry->addr, addr, 6);
-    // Data
-  entry->data = malloc(size);
-  if(entry->data == NULL) {
-    free(entry);
-    return -1;
-  }
-  memcpy(entry->data, data, size);
-    // Next
+  // Data
+  entry->data = data;
+  // Next
   entry->next = NULL;
 
   // Add the entry to the hashmap

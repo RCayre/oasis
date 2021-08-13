@@ -3,7 +3,7 @@
 #include "functions.h"
 #include "log.h"
 
-#define SIZE 0xA00
+#define SIZE 0x3080
 
 typedef struct block {
   uint16_t size;
@@ -70,7 +70,6 @@ uint8_t merge_if_possible(block_t * b, uint16_t size) {
 }
 
 void * malloc(uint16_t size) {
-  log(NULL, &size, 2);
   // Initialize the memory if new
   if(blocks == NULL) {
     blocks = (block_t*)memory;
@@ -122,11 +121,6 @@ void * malloc(uint16_t size) {
       // If not free, go to next block
       b = b->next; 
     }
-  }
-
-  if(ret == NULL) {
-    int i = 0xAA;
-    log(NULL, &i, 1);
   }
 
   return ret;

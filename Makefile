@@ -31,7 +31,7 @@ ifeq ($(PLATFORM),BOARD_BCM4375B1)
 	CONF_DIR := boards/bcm4375b1
 endif
 
-APPS = mitm
+APPS = mitm btlejack
 APPS_SRC = $(foreach app,$(APPS), $(APP_DIR)/$(app)/app.c)
 APPS_OBJ = $(foreach app,$(APPS), $(BUILD_DIR)/$(APP_DIR)/$(app)/app.o)
 APPS_BUILD = $(foreach app,$(APPS), $(BUILD_DIR)/$(APP_DIR)/$(app))

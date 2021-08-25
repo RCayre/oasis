@@ -26,9 +26,9 @@ static hashmap_t * timestamp_hashmap = NULL;
 static bool mutex = 0;
 
 void on_scan_header() {
-    memcpybt8(metrics.scan_rx_frame_header, rx_header, 2);
-    metrics.scan_rx_frame_size = metrics.scan_rx_frame_header[1];
-    metrics.scan_rx_frame_pdu_type = metrics.scan_rx_frame_header[0] & 0xF;
+  memcpybt8(metrics.scan_rx_frame_header, rx_header, 2);
+  metrics.scan_rx_frame_size = metrics.scan_rx_frame_header[1];
+  metrics.scan_rx_frame_pdu_type = metrics.scan_rx_frame_header[0] & 0xF;
 }
 
 void on_scan() {
@@ -67,15 +67,16 @@ void on_scan() {
       // Compute the frame interval
       metrics.scan_rx_frame_interval = current_timestamp - *(uint32_t *)previous_timestamp;
 
+      log(metrics.scan_rx_frame_adv_addr, &metrics.scan_rx_frame_interval, 4);
+
       // Save the new timestamp
       *(uint32_t *)previous_timestamp = current_timestamp;
     }
 
-    for(int i = 0; i < scan_callbacks_size; i++) {
-      scan_callbacks[i](&metrics);
-    }
+//    for(int i = 0; i < scan_callbacks_size; i++) {
+//      scan_callbacks[i](&metrics);
+//    }
 
     mutex = 0;
   }
-
 }

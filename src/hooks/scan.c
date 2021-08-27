@@ -24,7 +24,7 @@ static hashmap_t * timestamp_hashmap = NULL;
 
 static bool mutex = 0;
 
-bool check_timeout(void * data) {
+static bool check_timeout(void * data) {
   uint32_t current_timestamp = clock_SystemTimeMicroseconds32_nolock();
   return (current_timestamp - *(uint32_t *) data) > TIMESTAMP_HASHMAP_TIMEOUT; 
 }

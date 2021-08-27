@@ -24,9 +24,9 @@ typedef struct mitm_data {
   uint32_t last_timestamp;
 } mitm_data_t;
 
-hashmap_t * hashmap = NULL;
+static hashmap_t * hashmap = NULL;
 
-bool check_timeout(void * data) {
+static bool check_timeout(void * data) {
   mitm_data_t * d = (mitm_data_t *) data;
   uint32_t current_timestamp = clock_SystemTimeMicroseconds32_nolock();
   return (current_timestamp - d->last_timestamp) > HASHMAP_TIMEOUT;

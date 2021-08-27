@@ -53,7 +53,7 @@ void hashmap_free(hashmap_t **hashmap) {
 void hashmap_declutter(hashmap_t *hashmap) {
   if(hashmap->check_to_remove != NULL) {
     for(int i = 0; i < hashmap->size; i++) {
-      hashmap_entry * entry = hashmap->buckets[i];
+      hashmap_entry_t * entry = hashmap->buckets[i];
       while(entry != NULL) {
         // Checks with the user provided function if the 
         // entry should be removed

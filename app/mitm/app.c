@@ -8,6 +8,7 @@
 #define MAX_ADV_DELAY 10000
 #define WINDOW_SIZE 36
 #define HASHMAP_SIZE 16
+#define HASHMAP_TIMEOUT 1000
 
 typedef struct circ_buffer {
   uint32_t buf[WINDOW_SIZE];
@@ -20,15 +21,22 @@ typedef struct mitm_data {
   uint8_t last_channel;
   uint32_t threshold;
   bool under_attack;
+  uint32_t last_timestamp;
 } mitm_data_t;
 
 hashmap_t * hashmap = NULL;
+
+bool check_timeout(void * data) {
+  mitm_data_t * d = (mitm_data_t *) data;
+  uint32_t current_timestamp = clock_SystemTimeMicroseconds32_nolock();
+  return (current_timestamp - d->last_timestamp) > HASHMAP_TIMEOUT;
+}
 
 void SCAN_CALLBACK(mitm)(metrics_t * metrics) {
   // Check if a packet was received
   if(metrics->scan_rx_done && metrics->scan_rx_frame_pdu_type == 0) {
     if(hashmap == NULL) {
-      hashmap = hashmap_initialize(HASHMAP_SIZE, NULL);
+      hashmap = hashmap_initialize(HASHMAP_SIZE, check_timeout);
     }
 
     // Get this device's data for detecting a mitm attack
@@ -42,6 +50,7 @@ void SCAN_CALLBACK(mitm)(metrics_t * metrics) {
       data->last_channel = 0;
       data->threshold = 0;
       data->under_attack = 0;
+      data->last_timestamp = 0;
       int err = hashmap_put(hashmap, metrics->scan_rx_frame_adv_addr, data);
       // If there was not enough memory, skip
       if(err == -1) {
@@ -50,6 +59,9 @@ void SCAN_CALLBACK(mitm)(metrics_t * metrics) {
     } else {
       data = (mitm_data_t*)ret; 
     }
+
+    // Store the last timestamp for timeout purposes
+    data->last_timestamp = clock_SystemTimeMicroseconds32_nolock();
 
     // Exclude first value
     if(metrics->scan_rx_frame_interval == -1) {

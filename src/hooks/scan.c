@@ -7,8 +7,7 @@
 #include "malloc.h"
 
 #define TIMESTAMP_HASHMAP_SIZE 16
-
-#define SCAN_SLOTS 5
+#define TIMESTAMP_HASHMAP_TIMEOUT 1000
 
 extern metrics_t metrics;
 
@@ -24,6 +23,11 @@ static uint8_t * channel = (uint8_t *) 0x283356;
 static hashmap_t * timestamp_hashmap = NULL;
 
 static bool mutex = 0;
+
+bool check_timeout(void * data) {
+  uint32_t current_timestamp = clock_SystemTimeMicroseconds32_nolock();
+  return (current_timestamp - *(uint32_t *) data) > TIMESTAMP_HASHMAP_TIMEOUT; 
+}
 
 void on_scan_header() {
   memcpybt8(metrics.scan_rx_frame_header, rx_header, 2);
@@ -50,7 +54,7 @@ void on_scan() {
 
     // Initialize the timestamp hashmap if it hasn't been initialized yet
     if(timestamp_hashmap == NULL) {
-      timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL);
+      timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, check_timeout);
     }
 
     uint32_t current_timestamp = clock_SystemTimeMicroseconds32_nolock();

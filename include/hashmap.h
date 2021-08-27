@@ -21,14 +21,16 @@ typedef struct hashmap_entry {
 typedef struct hashmap {
   hashmap_entry_t ** buckets;
   uint32_t size;
+  bool (*check_to_remove)(void *);
 } hashmap_t;
 
 /**
  * @brief Creates a hashmap
  * @param size      number of buckets in the hashmap
+ * @param check_to_remove   a function that checks if an item should be removed
  * @return the newly created hashmap
  */
-hashmap_t * hashmap_initialize(uint32_t size);
+hashmap_t * hashmap_initialize(uint32_t size, bool (*check_to_remove)(void *));
 
 /**
  * @brief Frees a hashmap

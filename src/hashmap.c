@@ -14,13 +14,14 @@ uint32_t hash(hashmap_t * hashmap, uint8_t * addr) {
   return h % (hashmap->size - 1);
 }
 
-hashmap_t * hashmap_initialize(uint32_t size) {
+hashmap_t * hashmap_initialize(uint32_t size, bool (*check_to_remove)(void *)) {
   hashmap_t * hashmap = (hashmap_t *) malloc(sizeof(hashmap_t));
   hashmap->buckets = (hashmap_entry_t **) malloc(size * sizeof(hashmap_entry_t *));
   for(uint32_t i = 0; i < size; i++) {
     hashmap->buckets[i] = NULL;
   }
   hashmap->size = size;
+  hashmap->check_to_remove = check_to_remove;
   return hashmap;
 }
 
@@ -49,7 +50,25 @@ void hashmap_free(hashmap_t **hashmap) {
   *hashmap = NULL;
 }
 
+void hashmap_declutter(hashmap_t *hashmap) {
+  if(hashmap->check_to_remove != NULL) {
+    for(int i = 0; i < hashmap->size; i++) {
+      hashmap_entry * entry = hashmap->buckets[i];
+      while(entry != NULL) {
+        // Checks with the user provided function if the 
+        // entry should be removed
+        if(hashmap->check_to_remove(entry)) {
+          hashmap_delete(hashmap, entry->addr);
+        }
+      }
+    }
+  }
+}
+
 int hashmap_put(hashmap_t *hashmap, uint8_t * addr, void *data) {
+  // Removes unnecessary items from the hashmap if possible
+  hashmap_declutter(hashmap);
+
   uint32_t key = hash(hashmap, addr);
 
   // Create the entry

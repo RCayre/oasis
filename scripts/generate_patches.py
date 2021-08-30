@@ -25,6 +25,7 @@ if not os.path.isfile(romFile):
         
 sections = {
 "T": ".text", 
+"t": ".text",
 "D": ".data",
 "d": ".data",
 "B": ".bss",
@@ -32,7 +33,11 @@ sections = {
 "r": ".rodata"
 }
 
-included_sections = ["T", "D", "d", "B", "b", "r"]
+included_sections = ["T", "t", "D", "d", "B", "b", "r"]
+
+# Usually functions are placed in their own sections but they can sometimes
+# have the same name. Then we only want to write the section once
+written_sections = []
 
 output = ""
 functions = {}
@@ -43,6 +48,7 @@ with open(symFile,"r") as f:
         regex = re.compile("\s[a-zA-Z]\s")
         section = regex.findall(symbol)[0].strip()
 
+        output_buffer = ""
         # If it is a section to be included
         if section in included_sections:
             if section == "r":
@@ -53,26 +59,31 @@ with open(symFile,"r") as f:
                 subprocess.call(["arm-none-eabi-objcopy", elfFile, "--dump-section", sections[section]+"="+buildDir+"/section.bin"])
                 # recover the code for that symbol
                 with open(buildDir+"/section.bin","rb") as content:
-                    output += "ram,"+baseAddress+","+content.read().hex()+","+name+"\n"
+                    output_buffer = "ram,"+baseAddress+","+content.read().hex()+","+name+"\n"
             else:
-                # Some symbols in the bss might has a size of 0 and it won't show up
-                if len(symbol.replace("\n", "").split(" ")) == 4:
-                    # Anything other than .rodata and .bss
-                    baseAddress, size, section, name = symbol.replace("\n","").split(" ")
-                    baseAddress = "0x{:02x}".format(int(baseAddress,16))
-                    if section == "B" or section == "b":
-                        # initialize with zeros
-                        zeros = "".join(["00" for i in range(int(size, 16))])
-                        output += "ram,"+baseAddress+","+zeros+","+name+"\n"
-                    else:
-                        # dump the code for that symbol
-                        subprocess.call(["arm-none-eabi-objcopy", elfFile, "--dump-section", sections[section]+"."+name+"="+buildDir+"/section.bin"])
-                        # recover the code for that symbol
-                        with open(buildDir+"/section.bin","rb") as content:
-                            output += "ram,"+baseAddress+","+content.read().hex()+","+name+"\n"
+                # Exclude elements with no size
+                if len(symbol.replace("\n", "").split(" ")) != 4:
+                    continue
 
-                        if section == "T":
-                            functions[name] = baseAddress
+                # Anything other than .rodata and .bss
+                baseAddress, size, section, name = symbol.replace("\n","").split(" ")
+                baseAddress = "0x{:02x}".format(int(baseAddress,16))
+                if section == "B" or section == "b":
+                    # initialize with zeros
+                    zeros = "".join(["00" for i in range(int(size, 16))])
+                    output_buffer = "ram,"+baseAddress+","+zeros+","+name+"\n"
+                else:
+                    # dump the code for that symbol
+                    subprocess.call(["arm-none-eabi-objcopy", elfFile, "--dump-section", sections[section]+"."+name+"="+buildDir+"/section.bin"])
+                    # recover the code for that symbol
+                    with open(buildDir+"/section.bin","rb") as content:
+                        output_buffer = "ram,"+baseAddress+","+content.read().hex()+","+name+"\n"
+
+                    if section == "T" or section == "t":
+                        functions[name] = baseAddress
+            if sections[section]+"."+name not in written_sections:
+                output += output_buffer
+                written_sections += [sections[section]+"."+name]
 
 output2 = ""
 with open(romFile,"r") as f:

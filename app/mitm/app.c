@@ -26,17 +26,11 @@ typedef struct mitm_data {
 
 static hashmap_t * hashmap = NULL;
 
-static bool check_timeout(void * data) {
-  mitm_data_t * d = (mitm_data_t *) data;
-  uint32_t current_timestamp = clock_SystemTimeMicroseconds32_nolock();
-  return (current_timestamp - d->last_timestamp) > HASHMAP_TIMEOUT;
-}
-
 void SCAN_CALLBACK(mitm)(metrics_t * metrics) {
   // Check if a packet was received
   if(metrics->scan_rx_done && metrics->scan_rx_frame_pdu_type == 0) {
     if(hashmap == NULL) {
-      hashmap = hashmap_initialize(HASHMAP_SIZE, check_timeout);
+      hashmap = hashmap_initialize(HASHMAP_SIZE, NULL);
     }
 
     // Get this device's data for detecting a mitm attack

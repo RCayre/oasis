@@ -7,7 +7,7 @@
 #include "malloc.h"
 
 #define TIMESTAMP_HASHMAP_SIZE 16
-#define TIMESTAMP_HASHMAP_TIMEOUT 1000
+#define TIMESTAMP_HASHMAP_TIMEOUT 1000000
 
 extern metrics_t metrics;
 
@@ -26,7 +26,7 @@ static bool mutex = 0;
 
 static bool check_timeout(void * data) {
   uint32_t current_timestamp = clock_SystemTimeMicroseconds32_nolock();
-  return (current_timestamp - *(uint32_t *) data) > TIMESTAMP_HASHMAP_TIMEOUT; 
+  return (current_timestamp - *(uint32_t *)data) > TIMESTAMP_HASHMAP_TIMEOUT;
 }
 
 void on_scan_header() {
@@ -75,9 +75,9 @@ void on_scan() {
       *(uint32_t *)previous_timestamp = current_timestamp;
     }
 
-    for(int i = 0; i < scan_callbacks_size; i++) {
-      scan_callbacks[i](&metrics);
-    }
+    //for(int i = 0; i < scan_callbacks_size; i++) {
+    //  scan_callbacks[i](&metrics);
+    //}
 
     mutex = 0;
   }

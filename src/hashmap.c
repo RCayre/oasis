@@ -57,9 +57,11 @@ void hashmap_declutter(hashmap_t *hashmap) {
       while(entry != NULL) {
         // Checks with the user provided function if the 
         // entry should be removed
-        if(hashmap->check_to_remove(entry)) {
-          hashmap_delete(hashmap, entry->addr);
+        if(hashmap->check_to_remove(entry->data)) {
+          log(entry->addr, &i, 4);
+//          hashmap_delete(hashmap, entry->addr);
         }
+        entry = entry->next;
       }
     }
   }

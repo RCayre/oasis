@@ -53,7 +53,6 @@ void hashmap_free(hashmap_t **hashmap) {
 
 void hashmap_declutter(hashmap_t *hashmap) {
   if(hashmap->check_to_remove != NULL) {
-    log(NULL, &hashmap->nb_elements, 4);
     for(int i = 0; i < hashmap->nb_buckets; i++) {
       hashmap_entry_t * entry = hashmap->buckets[i];
       while(entry != NULL) {
@@ -62,7 +61,6 @@ void hashmap_declutter(hashmap_t *hashmap) {
         if(hashmap->check_to_remove(entry->data)) {
           // Save the addr for deletion purposes
           uint8_t * addr = entry->addr;
-          log(addr, &i, 4);
           // Switch to the next before deleting
           entry = entry->next;
           hashmap_delete(hashmap, addr);
@@ -71,7 +69,6 @@ void hashmap_declutter(hashmap_t *hashmap) {
         }
       }
     }
-    log(NULL, &hashmap->nb_elements, 4);
   }
 }
 

@@ -7,7 +7,7 @@
 #include "malloc.h"
 
 #define TIMESTAMP_HASHMAP_SIZE 16
-#define TIMESTAMP_HASHMAP_TIMEOUT 1000000
+#define TIMESTAMP_HASHMAP_TIMEOUT 5000000
 
 extern metrics_t metrics;
 

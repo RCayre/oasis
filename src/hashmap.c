@@ -11,17 +11,18 @@ uint32_t hash(hashmap_t * hashmap, uint8_t * addr) {
   for(int i = 0; i < 6; i++) {
     h += addr[i];
   }
-  return h % (hashmap->size - 1);
+  return h % (hashmap->nb_buckets - 1);
 }
 
-hashmap_t * hashmap_initialize(uint32_t size, bool (*check_to_remove)(void *)) {
+hashmap_t * hashmap_initialize(uint32_t nb_buckets, bool (*check_to_remove)(void *)) {
   hashmap_t * hashmap = (hashmap_t *) malloc(sizeof(hashmap_t));
-  hashmap->buckets = (hashmap_entry_t **) malloc(size * sizeof(hashmap_entry_t *));
-  for(uint32_t i = 0; i < size; i++) {
+  hashmap->buckets = (hashmap_entry_t **) malloc(nb_buckets * sizeof(hashmap_entry_t *));
+  for(uint32_t i = 0; i < nb_buckets; i++) {
     hashmap->buckets[i] = NULL;
   }
-  hashmap->size = size;
+  hashmap->nb_buckets = nb_buckets;
   hashmap->check_to_remove = check_to_remove;
+  hashmap->nb_elements = 0;
   return hashmap;
 }
 
@@ -37,7 +38,7 @@ bool compare_addr(uint8_t * addr_a, uint8_t * addr_b) {
 }
 
 void hashmap_free(hashmap_t **hashmap) {
-  for(uint32_t i = 0; i < (*hashmap)->size; i++) {
+  for(uint32_t i = 0; i < (*hashmap)->nb_buckets; i++) {
     hashmap_entry_t * entry = (*hashmap)->buckets[i];
     // free the whole linked list
     while(entry != NULL) {
@@ -52,18 +53,25 @@ void hashmap_free(hashmap_t **hashmap) {
 
 void hashmap_declutter(hashmap_t *hashmap) {
   if(hashmap->check_to_remove != NULL) {
-    for(int i = 0; i < hashmap->size; i++) {
+    log(NULL, &hashmap->nb_elements, 4);
+    for(int i = 0; i < hashmap->nb_buckets; i++) {
       hashmap_entry_t * entry = hashmap->buckets[i];
       while(entry != NULL) {
         // Checks with the user provided function if the 
         // entry should be removed
         if(hashmap->check_to_remove(entry->data)) {
-          log(entry->addr, &i, 4);
-//          hashmap_delete(hashmap, entry->addr);
+          // Save the addr for deletion purposes
+          uint8_t * addr = entry->addr;
+          log(addr, &i, 4);
+          // Switch to the next before deleting
+          entry = entry->next;
+          hashmap_delete(hashmap, addr);
+        } else {
+          entry = entry->next;
         }
-        entry = entry->next;
       }
     }
+    log(NULL, &hashmap->nb_elements, 4);
   }
 }
 
@@ -94,34 +102,43 @@ int hashmap_put(hashmap_t *hashmap, uint8_t * addr, void *data) {
     entry->next = hashmap->buckets[key];
     hashmap->buckets[key] = entry;
   }
+
+  hashmap->nb_elements += 1;
+
   return 0;
 }
 
 void hashmap_delete(hashmap_t *hashmap, uint8_t * addr) {
   uint32_t key = hash(hashmap, addr);
 
-  // Find the element before the entry to be deleted
   hashmap_entry_t * cur = hashmap->buckets[key];
-  // Check if there is a bucket
-  // Check if there is at least two elements
-  // Check if the next one has the right address
-  while(cur != NULL || 
-      (cur->next == NULL && !compare_addr(cur->addr, addr)) || 
-      (cur->next != NULL && !compare_addr(cur->next->addr, addr))) {
-    cur = cur->next;
-  }
-
-  // Remove it
   if(cur != NULL) {
-    // If there was a bucket with the right address
     if(cur->next == NULL) {
-      // If it was alone
-      hashmap->buckets[key] = NULL;
-      free(cur);
+      // Only one element
+      if(compare_addr(cur->addr, addr)) {
+        // Remove the element
+        hashmap->buckets[key] = NULL;
+        free(cur);
+        hashmap->nb_elements -= 1;
+      }
     } else {
-      // If there were at least two
-      cur->next = cur->next->next;
-      free(cur->next);
+      // More than one element
+      // Find the element before the entry to be deleted
+      bool found = 0;
+      while(!found && cur->next != NULL) {
+        found = compare_addr(cur->next->addr, addr);
+        if(!found) {
+          cur = cur->next;
+        }
+      }
+
+      if(found) {
+        // Remove the element after cur
+        hashmap_entry_t * to_be_freed = cur->next;
+        cur->next = cur->next->next;
+        free(to_be_freed);
+        hashmap->nb_elements -= 1;
+      }
     }
   }
 }

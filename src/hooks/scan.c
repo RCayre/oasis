@@ -71,6 +71,8 @@ void on_scan() {
       // Compute the frame interval
       metrics.scan_rx_frame_interval = current_timestamp - *(uint32_t *)previous_timestamp;
 
+      log(metrics.scan_rx_frame_adv_addr, &metrics.scan_rx_frame_interval, 4);
+
       // Save the new timestamp
       *(uint32_t *)previous_timestamp = current_timestamp;
     }

@@ -4,6 +4,7 @@
 #include "log.h"
 #include "hashmap.h"
 #include "malloc.h"
+#include "time.h"
 
 #define MAX_ADV_DELAY 10000
 #define WINDOW_SIZE 36
@@ -55,7 +56,7 @@ void SCAN_CALLBACK(mitm)(metrics_t * metrics) {
     }
 
     // Store the last timestamp for timeout purposes
-    data->last_timestamp = clock_SystemTimeMicroseconds32_nolock();
+    data->last_timestamp = timestamp_in_us();
 
     // Exclude first value
     if(metrics->scan_rx_frame_interval == -1) {

@@ -17,7 +17,7 @@ INTERFACE := $(shell python3 scripts/detect_interface.py)
 ifeq ($(PLATFORM),)
     PLATFORM = BOARD_CYW20735
 endif
-SUPPORTED_PLATFORMS = BOARD_CYW20735 BOARD_BCM4375B1
+SUPPORTED_PLATFORMS = BOARD_CYW20735 BOARD_BCM43430A1
 
 ifeq ($(filter $(PLATFORM), $(SUPPORTED_PLATFORMS)),)
     $(error "PLATFORM not in $(SUPPORTED_PLATFORMS)")
@@ -27,8 +27,8 @@ ifeq ($(PLATFORM),BOARD_CYW20735)
 	CONF_DIR := boards/cyw20735
 endif
 
-ifeq ($(PLATFORM),BOARD_BCM4375B1)
-	CONF_DIR := boards/bcm4375b1
+ifeq ($(PLATFORM),BOARD_BCM43430A1)
+	CONF_DIR := boards/bcm43430a1
 endif
 
 APPS = mitm btlejack

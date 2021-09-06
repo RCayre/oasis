@@ -14,7 +14,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 class BTComm:
-    def __init__(self,interface="hci1"):
+    def __init__(self,interface):
         self.btSocket = BluetoothHCISocket(int(interface[-1:]))
             
     def recv(self):
@@ -50,16 +50,19 @@ class BTComm:
                         print(bcolors.WARNING + registers + bcolors.ENDC)
         return None
         
+interface = "hci0"
 addressFilter = None
 filterOnly = False
 for argument in sys.argv:
+    if "--interface=" in argument:
+        interface = argument.split("--interface=")[1].lower()
     if "--filter=" in argument:
         addressFilter = argument.split("--filter=")[1].lower()
     if "--filter-only=" in argument:
         addressFilter = argument.split("--filter-only=")[1].lower()
         filterOnly = True
 
-comm = BTComm()
+comm = BTComm(interface)
 print("Listening to device...")
 try:
     while True:

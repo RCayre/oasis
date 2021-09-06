@@ -13,6 +13,7 @@ typedef struct block {
 } __attribute__((packed)) block_t;
 
 // Memory region to be used for allocating data
+__attribute__((section(".bss.memory")))
 uint8_t memory[SIZE];
 
 // A linked list of the blocks in memory

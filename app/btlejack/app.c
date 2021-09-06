@@ -6,5 +6,5 @@
 #include "malloc.h"
 
 void CONN_CALLBACK(btlejack)(metrics_t * metrics) {
-  log(NULL, &metrics->conn_rx_crc_good, 1);
+  //log(NULL, &metrics->conn_rx_crc_good, 1);
 }

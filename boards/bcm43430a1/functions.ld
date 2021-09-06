@@ -4,5 +4,5 @@ memcpy = 0x775c8;
 memcpybt8 = 0x87bf0;
 lm_getRawRssiWithTaskId = 0x4c090;
 
-btclk_GetSysClk_clkpclk = 0x5fb8c;
+btclk_GetNatClk_clkpclk = 0x5fb68;
 btclk_Convert_clkpclk_us = 0x5faf2;

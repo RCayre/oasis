@@ -63,7 +63,7 @@ for argument in sys.argv:
         filterOnly = True
 
 comm = BTComm(interface)
-print("Listening to device...")
+print("Listening to device on", interface, "...")
 try:
     while True:
         pkt = comm.recv()

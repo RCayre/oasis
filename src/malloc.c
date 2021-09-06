@@ -3,7 +3,7 @@
 #include "functions.h"
 #include "log.h"
 
-#define SIZE 0x3080
+#define SIZE 0x500
 
 typedef struct block {
   uint16_t size;

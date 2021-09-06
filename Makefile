@@ -17,7 +17,7 @@ INTERFACE := $(shell python3 scripts/detect_interface.py)
 ifeq ($(PLATFORM),)
     PLATFORM = BOARD_CYW20735
 endif
-SUPPORTED_PLATFORMS = BOARD_CYW20735 BOARD_BCM43430A1
+SUPPORTED_PLATFORMS = BOARD_CYW20735 BOARD_BCM43430A1 BOARD_BCM4335C0
 
 ifeq ($(filter $(PLATFORM), $(SUPPORTED_PLATFORMS)),)
     $(error "PLATFORM not in $(SUPPORTED_PLATFORMS)")
@@ -31,12 +31,16 @@ ifeq ($(PLATFORM),BOARD_BCM43430A1)
 	CONF_DIR := boards/bcm43430a1
 endif
 
-APPS = mitm btlejack
+ifeq ($(PLATFORM),BOARD_BCM4335C0)
+	CONF_DIR := boards/bcm4335c0
+endif
+
+APPS = btlejack
 APPS_SRC = $(foreach app,$(APPS), $(APP_DIR)/$(app)/app.c)
 APPS_OBJ = $(foreach app,$(APPS), $(BUILD_DIR)/$(APP_DIR)/$(app)/app.o)
 APPS_BUILD = $(foreach app,$(APPS), $(BUILD_DIR)/$(APP_DIR)/$(app))
 
-default : build
+all : build
 
 create_builddir:
 	mkdir -p $(BUILD_DIR)
@@ -52,15 +56,15 @@ $(BUILD_DIR)/hooks.c: $(CONF_DIR)/patch.conf
 	python3 scripts/generate_hooks.py $(BUILD_DIR) $(CONF_DIR)/patch.conf
 	
 $(BUILD_DIR)/out.elf: $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c
-	arm-none-eabi-gcc $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CFLAGS) -T $(CONF_DIR)/linker.ld $(CONF_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR) 
+	arm-none-eabi-gcc -D$(PLATFORM) $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CFLAGS) -T $(CONF_DIR)/linker.ld $(CONF_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR) 
 
 $(BUILD_DIR)/symbols.sym: $(BUILD_DIR)/out.elf
 	arm-none-eabi-nm -S -a $(BUILD_DIR)/out.elf | sort > $(BUILD_DIR)/symbols.sym	
 	
 $(BUILD_DIR)/patches.csv: $(BUILD_DIR)/symbols.sym
-	python3 scripts/generate_patches.py $(BUILD_DIR)/out.elf $(BUILD_DIR)/symbols.sym $(CONF_DIR)/patch.conf $(BUILD_DIR)
+	python3 scripts/generate_patches.py $(BUILD_DIR)/out.elf $(BUILD_DIR)/symbols.sym $(CONF_DIR)/patch.conf $(BUILD_DIR) 2> /dev/null
 		
-build: create_builddir $(BUILD_DIR)/patches.csv
+build: clean create_builddir $(BUILD_DIR)/patches.csv
 
 patch: build
 	sudo python3 $(CONF_DIR)/patcher.py $(BUILD_DIR)/patches.csv

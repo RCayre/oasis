@@ -11,6 +11,7 @@ symFile = sys.argv[2]
 romFile = sys.argv[3]
 buildDir = sys.argv[4]
 
+
 if not os.path.isfile(elfFile):
     print("ELF file does not exist ")
     exit(2)
@@ -98,7 +99,7 @@ with open(romFile,"r") as f:
                 instruction = asm(instruction,arch="thumb",vma=int(baseAddress,16))
                 output2 += "rom,"+baseAddress+","+instruction.hex()+","+name+"\n"
 
-output = output2 + output
+output = output + output2
 
 if output != "":
     with open(buildDir+"/patches.csv","w") as f:

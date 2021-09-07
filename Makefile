@@ -55,8 +55,8 @@ $(BUILD_DIR)/app.c: $(APPS_OBJ)
 $(BUILD_DIR)/hooks.c: $(CONF_DIR)/patch.conf
 	python3 scripts/generate_hooks.py $(BUILD_DIR) $(CONF_DIR)/patch.conf
 	
-$(BUILD_DIR)/out.elf: $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c
-	arm-none-eabi-gcc -D$(PLATFORM) $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CFLAGS) -T $(CONF_DIR)/linker.ld $(CONF_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR) 
+$(BUILD_DIR)/out.elf: $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CONF_DIR)/functions.c
+	arm-none-eabi-gcc -D$(PLATFORM) $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CFLAGS) $(CONF_DIR)/functions.c -T $(CONF_DIR)/linker.ld $(CONF_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR) 
 
 $(BUILD_DIR)/symbols.sym: $(BUILD_DIR)/out.elf
 	arm-none-eabi-nm -S -a $(BUILD_DIR)/out.elf | sort > $(BUILD_DIR)/symbols.sym	

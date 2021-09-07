@@ -3,18 +3,20 @@
 
 #include "types.h"
 
-int bthci_event_AttemptToEnqueueEventToTransport(char* buffer);
-int bthci_event_AttemptToEnqueueEventToTransportWithoutFree(char* buffer);
-char* bthci_event_AllocateEventAndFillHeader(uint8_t len_total, char event_code, uint8_t len_data);
-char* bthci_event_AllocateEventAndFillHeaderOld(uint8_t len_total, char event_code);
-void bthci_event_FreeEvent(char * event);
+// These registers are only accessible through memcpybt8
+extern uint8_t * rx_header;
+extern uint8_t * rx_buffer;
+extern uint8_t * status;
+extern uint8_t * channel;
 
 void * memcpy(void *dst, void* src, uint32_t size);
+
 void * memcpybt8(void* dst, void* src, uint32_t size);
 
-int lm_getRawRssiWithTaskId();
+void send_hci(uint8_t opcode, void * content, uint32_t size);
 
-void btclk_GetNatClk_clkpclk(uint32_t * t);
-uint32_t btclk_Convert_clkpclk_us(uint32_t * p);
+uint32_t get_timestamp_in_us();
+
+int get_rssi();
 
 #endif

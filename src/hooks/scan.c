@@ -1,11 +1,9 @@
 #include "log.h"
 
-#include "hci.h"
 #include "functions.h"
 #include "metrics.h"
 #include "hashmap.h"
 #include "malloc.h"
-#include "time.h"
 
 #define TIMESTAMP_HASHMAP_SIZE 16
 #define TIMESTAMP_HASHMAP_TIMEOUT 5000000
@@ -15,19 +13,12 @@ extern metrics_t metrics;
 extern uint8_t scan_callbacks_size;
 extern callback_t scan_callbacks[];
 
-// These registers are only accessible through memcpybt8
-static uint8_t * rx_header = (uint8_t *) 0x318B98;
-//static uint8_t * rx_buffer = (uint8_t *) 0x370C00;
-static uint8_t * rx_buffer = (uint8_t *) 0x370880;
-static uint8_t * status = (uint8_t *) 0x318BAC;
-static uint8_t * channel = (uint8_t *) 0x283356;
-
 static hashmap_t * timestamp_hashmap = NULL;
 
 static bool mutex = 0;
 
 static bool check_timeout(void * data) {
-  uint32_t current_timestamp = timestamp_in_us();
+  uint32_t current_timestamp = get_timestamp_in_us();
   return (current_timestamp - *(uint32_t *)data) > TIMESTAMP_HASHMAP_TIMEOUT;
 }
 
@@ -45,7 +36,7 @@ void on_scan() {
     mutex = 1;
 
     // Get the RSSI
-    //metrics.scan_rx_rssi = lm_getRawRssiWithTaskId();
+    metrics.scan_rx_rssi = get_rssi();
     // Get the channel
     metrics.scan_rx_channel = *channel;
 
@@ -59,7 +50,7 @@ void on_scan() {
       timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, check_timeout);
     }
 
-    uint32_t current_timestamp = timestamp_in_us(); 
+    uint32_t current_timestamp = get_timestamp_in_us(); 
     // Get the previous timestamp for this address
     void * previous_timestamp = hashmap_get(timestamp_hashmap, metrics.scan_rx_frame_adv_addr);
     if(previous_timestamp == NULL) {

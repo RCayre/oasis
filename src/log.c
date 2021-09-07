@@ -1,7 +1,6 @@
 #include "log.h"
 
 #include "malloc.h"
-#include "hci.h"
 #include "functions.h"
 
 void log(uint8_t * addr, void* arg, int size) {

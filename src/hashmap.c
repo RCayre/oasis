@@ -1,6 +1,5 @@
 #include "hashmap.h"
 
-#include "hci.h"
 #include "malloc.h"
 #include "log.h"
 

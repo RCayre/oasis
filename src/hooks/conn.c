@@ -1,5 +1,3 @@
-#include "hci.h"
-
 #include "log.h"
 #include "functions.h"
 #include "metrics.h"
@@ -13,9 +11,6 @@ extern metrics_t metrics;
 
 extern uint8_t conn_callbacks_size;
 extern callback_t conn_callbacks[];
-
-// These registers are only accessible through memcpybt8
-static uint8_t * status = (uint8_t *) 0x318BAC;
 
 void on_conn_header() {
 }

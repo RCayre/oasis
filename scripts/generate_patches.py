@@ -91,13 +91,13 @@ with open(romFile,"r") as f:
     rompatches = f.readlines()
     for rompatch in rompatches:
         rompatch = rompatch.replace("\n","").split(":")
-        if len(rompatch) == 4:
-            name,baseAddress,target,instr = rompatch
+        if len(rompatch) == 5:
+            section,name,baseAddress,target,instr = rompatch
             baseAddress = "0x{:02x}".format(int(baseAddress,16))
             if name+"_hook" in functions:
                 instruction = "bl "+functions[name+"_hook"]
                 instruction = asm(instruction,arch="thumb",vma=int(baseAddress,16))
-                output2 += "rom,"+baseAddress+","+instruction.hex()+","+name+"\n"
+                output2 += section+","+baseAddress+","+instruction.hex()+","+name+"\n"
 
 output = output + output2
 

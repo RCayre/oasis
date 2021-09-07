@@ -28,8 +28,8 @@ with open(patchFile,"r") as f:
 	output = ""
 	for line in f.readlines():
 		line = line.replace("\n","").split(":")
-		if len(line) == 4:
-			name, address, target, instr = line
+		if len(line) == 5:
+			section, name, address, target, instr = line
 			output += TEMPLATE % (name+"_hook",target, instr)
 	with open(buildDir+"/hooks.c","w") as fw:
 		fw.write(output)

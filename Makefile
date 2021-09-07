@@ -1,6 +1,7 @@
 BUILD_DIR := build
 SRC_DIR := src
 APP_DIR := app
+SCRIPTS_DIR := scripts
 INCLUDE_DIR := include
 
 CFLAGS += -nostdlib
@@ -12,7 +13,7 @@ CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
 CFLAGS += -O0
 
-INTERFACE := $(shell python3 scripts/detect_interface.py)
+INTERFACE := $(shell python3 $(SCRIPTS_DIR)/detect_interface.py)
 
 ifeq ($(PLATFORM),)
     PLATFORM = BOARD_CYW20735
@@ -50,10 +51,10 @@ $(BUILD_DIR)/$(APP_DIR)/%/app.o: $(APP_DIR)/%/app.c
 	arm-none-eabi-gcc $< $(CFLAGS) -c -o $@ -I $(INCLUDE_DIR) 
 
 $(BUILD_DIR)/app.c: $(APPS_OBJ)
-	python3 scripts/generate_app.py $(BUILD_DIR) $(APPS)
+	python3 $(SCRIPTS_DIR)/generate_app.py $(BUILD_DIR) $(APPS)
 	
 $(BUILD_DIR)/hooks.c: $(CONF_DIR)/patch.conf
-	python3 scripts/generate_hooks.py $(BUILD_DIR) $(CONF_DIR)/patch.conf
+	python3 $(SCRIPTS_DIR)/generate_hooks.py $(BUILD_DIR) $(CONF_DIR)/patch.conf
 	
 $(BUILD_DIR)/out.elf: $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CONF_DIR)/functions.c
 	arm-none-eabi-gcc -D$(PLATFORM) $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CFLAGS) $(CONF_DIR)/functions.c -T $(CONF_DIR)/linker.ld $(CONF_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR) 
@@ -62,12 +63,12 @@ $(BUILD_DIR)/symbols.sym: $(BUILD_DIR)/out.elf
 	arm-none-eabi-nm -S -a $(BUILD_DIR)/out.elf | sort > $(BUILD_DIR)/symbols.sym	
 	
 $(BUILD_DIR)/patches.csv: $(BUILD_DIR)/symbols.sym
-	python3 scripts/generate_patches.py $(BUILD_DIR)/out.elf $(BUILD_DIR)/symbols.sym $(CONF_DIR)/patch.conf $(BUILD_DIR) 2> /dev/null
+	python3 $(SCRIPTS_DIR)/generate_patches.py $(BUILD_DIR)/out.elf $(BUILD_DIR)/symbols.sym $(CONF_DIR)/patch.conf $(BUILD_DIR) 2> /dev/null
 		
 build: clean create_builddir $(BUILD_DIR)/patches.csv
 
 patch: build
-	sudo python3 $(CONF_DIR)/patcher.py $(BUILD_DIR)/patches.csv
+	sudo python3 $(SCRIPTS_DIR)/patcher.py $(BUILD_DIR)/patches.csv
 	rm -f btsnoop.log
 	
 clean:
@@ -95,4 +96,4 @@ dump:
 	sudo hcidump -i hci1 -R
 
 log:
-	sudo scripts/logger.py
+	sudo $(SCRIPTS_DIR)/logger.py

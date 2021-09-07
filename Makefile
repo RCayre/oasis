@@ -26,14 +26,17 @@ endif
 
 ifeq ($(PLATFORM),BOARD_CYW20735)
 	CONF_DIR := boards/cyw20735
+	CORE_TYPE := HCI
 endif
 
 ifeq ($(PLATFORM),BOARD_BCM43430A1)
 	CONF_DIR := boards/bcm43430a1
+	CORE_TYPE := HCI
 endif
 
 ifeq ($(PLATFORM),BOARD_BCM4335C0)
 	CONF_DIR := boards/bcm4335c0
+	CORE_TYPE := ADB
 endif
 
 APPS = btlejack
@@ -68,7 +71,7 @@ $(BUILD_DIR)/patches.csv: $(BUILD_DIR)/symbols.sym
 build: clean create_builddir $(BUILD_DIR)/patches.csv
 
 patch: build
-	sudo python3 $(SCRIPTS_DIR)/patcher.py $(BUILD_DIR)/patches.csv
+	sudo python3 $(SCRIPTS_DIR)/patcher.py $(BUILD_DIR)/patches.csv $(CORE_TYPE)
 	rm -f btsnoop.log
 	
 clean:

@@ -5,10 +5,10 @@
  */
 
 void * _memcpy(void * dst, void * src, uint32_t size);
-void * _memcpybt8(void * dst, void * src, uint32_t size);
-char * bthci_event_AllocateEventAndFillHeader(char event_code, uint8_t len_total);
+void * _memcpybt8(void * dsr, void * src, uint32_t size);
+char * bthci_event_AllocateEventAndFillHeader(uint8_t len_total, char event_code, uint8_t len_data);
 void bthci_event_AttemptToEnqueueEventToTransport(char * event);
-void bthci_event_FreeEvent(char * event);
+int lm_getRawRssiWithTaskId();
 void btclk_GetNatClk_clkpclk(uint32_t * t);
 uint32_t btclk_Convert_clkpclk_us(uint32_t * p);
 
@@ -25,10 +25,9 @@ void * memcpybt8(void * dst, void * src, uint32_t size) {
 }
 
 void send_hci(uint8_t opcode, void * content, uint32_t size) {
-  char *hci_buffer = bthci_event_AllocateEventAndFillHeader(opcode, size + 2);
-  memcpy(hci_buffer + 2, content, size);
-  bthci_event_AttemptToEnqueueEventToTransport(hci_buffer); 
-  bthci_event_FreeEvent(hci_buffer);
+	char *hci_buffer = bthci_event_AllocateEventAndFillHeader(size + 2, opcode, size);
+	memcpy(hci_buffer + 10, content, size);
+  bthci_event_AttemptToEnqueueEventToTransport(hci_buffer);
 }
 
 uint32_t get_timestamp_in_us() {
@@ -38,7 +37,7 @@ uint32_t get_timestamp_in_us() {
 }
 
 int get_rssi() {
-  return *(char *)0x32fc34 + *(char *)0x200f6f;
+  return lm_getRawRssiWithTaskId();
 }
 
 /**
@@ -46,6 +45,6 @@ int get_rssi() {
  */
 
 uint8_t * rx_header = (uint8_t *) 0x318B98;
-uint8_t * rx_buffer = (uint8_t *) 0x370880;
+uint8_t * rx_buffer = (uint8_t *) 0x370A00;
 uint8_t * status = (uint8_t *) 0x318BAC;
-uint8_t * channel = (uint8_t *) 0x20d6fa;
+uint8_t * channel = (uint8_t *) 0x210d46;

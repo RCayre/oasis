@@ -18,25 +18,31 @@ INTERFACE := $(shell python3 $(SCRIPTS_DIR)/detect_interface.py)
 ifeq ($(PLATFORM),)
     PLATFORM = BOARD_CYW20735
 endif
-SUPPORTED_PLATFORMS = BOARD_CYW20735 BOARD_BCM43430A1 BOARD_BCM4335C0
+SUPPORTED_PLATFORMS = BOARD_CYW20735 BOARD_BCM43430A1 BOARD_BCM4335C0 BOARD_BCM4345C0
 
 ifeq ($(filter $(PLATFORM), $(SUPPORTED_PLATFORMS)),)
     $(error "PLATFORM not in $(SUPPORTED_PLATFORMS)")
 endif
 
-ifeq ($(PLATFORM),BOARD_CYW20735)
+ifeq ($(PLATFORM),BOARD_CYW20735) # CYW20735 Development board
 	CONF_DIR := boards/cyw20735
 	CORE_TYPE := HCI
 endif
 
-ifeq ($(PLATFORM),BOARD_BCM43430A1)
+ifeq ($(PLATFORM),BOARD_BCM43430A1) # Raspberry Pi 3
 	CONF_DIR := boards/bcm43430a1
 	CORE_TYPE := HCI
 endif
 
-ifeq ($(PLATFORM),BOARD_BCM4335C0)
+ifeq ($(PLATFORM),BOARD_BCM4335C0) # Nexus 5
 	CONF_DIR := boards/bcm4335c0
 	CORE_TYPE := ADB
+endif
+
+
+ifeq ($(PLATFORM),BOARD_BCM4345C0) # Raspberry Pi 3+/4
+	CONF_DIR := boards/bcm4345c0
+	CORE_TYPE := HCI
 endif
 
 APPS = btlejack
@@ -99,4 +105,4 @@ dump:
 	sudo hcidump -i hci1 -R
 
 log:
-	sudo $(SCRIPTS_DIR)/logger.py
+	sudo $(SCRIPTS_DIR)/logger.py --interface=hci1

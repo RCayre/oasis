@@ -23,12 +23,14 @@ static bool check_timeout(void * data) {
 }
 
 void on_scan_header() {
-  memcpybt8(metrics.scan_rx_frame_header, rx_header, 2);
-  metrics.scan_rx_frame_size = metrics.scan_rx_frame_header[1];
-  metrics.scan_rx_frame_pdu_type = metrics.scan_rx_frame_header[0] & 0xF;
+
 }
 
 void on_scan() {
+  memcpybt8(metrics.scan_rx_frame_header, rx_header, 2);
+  metrics.scan_rx_frame_size = metrics.scan_rx_frame_header[1];
+  metrics.scan_rx_frame_pdu_type = metrics.scan_rx_frame_header[0] & 0xF;
+  
   metrics.scan_status = *status;
   metrics.scan_rx_done = metrics.scan_status & 0x4;
 
@@ -76,4 +78,5 @@ void on_scan() {
 
     mutex = 0;
   }
+
 }

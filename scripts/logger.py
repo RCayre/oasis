@@ -50,7 +50,7 @@ class BTComm:
                         print(bcolors.WARNING + registers + bcolors.ENDC)
         return None
         
-interface = "hci0"
+interface = "hci1"
 addressFilter = None
 filterOnly = False
 for argument in sys.argv:

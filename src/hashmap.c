@@ -7,13 +7,13 @@
 
 uint32_t hash(hashmap_t * hashmap, uint8_t * addr) {
   int h = 0;
-  for(int i = 0; i < 6; i++) {
+  for(int i = 0; i < hashmap->addr_size; i++) {
     h += addr[i];
   }
   return h % (hashmap->nb_buckets - 1);
 }
 
-hashmap_t * hashmap_initialize(uint32_t nb_buckets, bool (*check_to_remove)(void *)) {
+hashmap_t * hashmap_initialize(uint32_t nb_buckets, bool (*check_to_remove)(void *), uint8_t addr_size) {
   hashmap_t * hashmap = (hashmap_t *) malloc(sizeof(hashmap_t));
   hashmap->buckets = (hashmap_entry_t **) malloc(nb_buckets * sizeof(hashmap_entry_t *));
   for(uint32_t i = 0; i < nb_buckets; i++) {
@@ -22,13 +22,14 @@ hashmap_t * hashmap_initialize(uint32_t nb_buckets, bool (*check_to_remove)(void
   hashmap->nb_buckets = nb_buckets;
   hashmap->check_to_remove = check_to_remove;
   hashmap->nb_elements = 0;
+  hashmap->addr_size = addr_size;
   return hashmap;
 }
 
-bool compare_addr(uint8_t * addr_a, uint8_t * addr_b) {
+bool compare_addr(hashmap_t * hashmap, uint8_t * addr_a, uint8_t * addr_b) {
   bool is_equal = 1;
   uint8_t i = 0;
-  while(is_equal && i < ADV_ADDR_SIZE) {
+  while(is_equal && i < hashmap->addr_size) {
     is_equal = (addr_a[i] == addr_b[i]);
     i += 1;
   }
@@ -83,7 +84,8 @@ int hashmap_put(hashmap_t *hashmap, uint8_t * addr, void *data) {
     return -1;
   }
   // Addr
-  memcpy(entry->addr, addr, 6);
+  entry->addr = (uint8_t *) malloc(hashmap->addr_size);
+  memcpy(entry->addr, addr, hashmap->addr_size);
   // Data
   entry->data = data;
   // Next
@@ -111,9 +113,11 @@ void hashmap_delete(hashmap_t *hashmap, uint8_t * addr) {
   if(cur != NULL) {
     if(cur->next == NULL) {
       // Only one element
-      if(compare_addr(cur->addr, addr)) {
+      if(compare_addr(hashmap, cur->addr, addr)) {
         // Remove the element
         hashmap->buckets[key] = NULL;
+        free(cur->addr);
+        free(cur->data);
         free(cur);
         hashmap->nb_elements -= 1;
       }
@@ -122,7 +126,7 @@ void hashmap_delete(hashmap_t *hashmap, uint8_t * addr) {
       // Find the element before the entry to be deleted
       bool found = 0;
       while(!found && cur->next != NULL) {
-        found = compare_addr(cur->next->addr, addr);
+        found = compare_addr(hashmap, cur->next->addr, addr);
         if(!found) {
           cur = cur->next;
         }
@@ -132,6 +136,8 @@ void hashmap_delete(hashmap_t *hashmap, uint8_t * addr) {
         // Remove the element after cur
         hashmap_entry_t * to_be_freed = cur->next;
         cur->next = cur->next->next;
+        free(to_be_freed->addr);
+        free(to_be_freed->data);
         free(to_be_freed);
         hashmap->nb_elements -= 1;
       }
@@ -146,7 +152,7 @@ void *hashmap_get(hashmap_t *hashmap, uint8_t * addr) {
   hashmap_entry_t * cur = hashmap->buckets[key];
   uint8_t found = 0;
   while(!found && cur != NULL) {
-    found = compare_addr(cur->addr, addr);
+    found = compare_addr(hashmap, cur->addr, addr);
     if(!found) {
       cur = cur->next;
     }

@@ -13,7 +13,7 @@
 #define ADV_ADDR_SIZE 6
 
 typedef struct hashmap_entry {
-  uint8_t addr[6];
+  uint8_t * addr;
   void * data;
   struct hashmap_entry *next;
 } hashmap_entry_t;
@@ -23,6 +23,7 @@ typedef struct hashmap {
   uint32_t nb_buckets;
   bool (*check_to_remove)(void *);
   uint32_t nb_elements;
+  uint8_t addr_size;
 } hashmap_t;
 
 /**
@@ -31,7 +32,7 @@ typedef struct hashmap {
  * @param check_to_remove   a function that checks if an item should be removed
  * @return the newly created hashmap
  */
-hashmap_t * hashmap_initialize(uint32_t nb_buckets, bool (*check_to_remove)(void *));
+hashmap_t * hashmap_initialize(uint32_t nb_buckets, bool (*check_to_remove)(void *), uint8_t addr_size);
 
 /**
  * @brief Frees a hashmap

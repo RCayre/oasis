@@ -22,12 +22,12 @@ typedef struct metrics {
   uint8_t scan_rx_channel;
 
   /* CONN */
-  uint8_t conn_channel_map[6];
+  uint8_t conn_channel_map[5];
   uint32_t conn_crc_init;
-  uint32_t conn_access_addr;
+  uint8_t conn_access_addr[4];
   uint32_t conn_rx_frame_interval;
   bool conn_rx_crc_good;
-  uint16_t conn_rx_frame_header;
+  uint8_t conn_rx_frame_header[2];
 } metrics_t;
 
 #endif

@@ -72,7 +72,7 @@ with open(symFile,"r") as f:
                 if section == "B" or section == "b":
                     # initialize with zeros
                     zeros = "".join(["00" for i in range(int(size, 16))])
-                    output_buffer = "ram,"+baseAddress+","+zeros+","+name+"\n"
+                    output += "ram,"+baseAddress+","+zeros+","+name+"\n"
                 else:
                     # dump the code for that symbol
                     subprocess.call(["arm-none-eabi-objcopy", elfFile, "--dump-section", sections[section]+"."+name+"="+buildDir+"/section.bin"])

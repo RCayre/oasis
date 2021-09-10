@@ -49,7 +49,7 @@ void on_scan() {
 
     // Initialize the timestamp hashmap if it hasn't been initialized yet
     if(timestamp_hashmap == NULL) {
-      timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, check_timeout);
+      timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, check_timeout, 6);
     }
 
     uint32_t current_timestamp = get_timestamp_in_us(); 
@@ -65,8 +65,6 @@ void on_scan() {
     } else {
       // Compute the frame interval
       metrics.scan_rx_frame_interval = current_timestamp - *(uint32_t *)previous_timestamp;
-
-      log(metrics.scan_rx_frame_adv_addr, &metrics.scan_rx_frame_interval, 4);
 
       // Save the new timestamp
       *(uint32_t *)previous_timestamp = current_timestamp;

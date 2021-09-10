@@ -52,6 +52,9 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
     return;
   }
 
+  // We want to ignore two windows to comply with a device that
+  // might advertise quickly at the beginning before slowing down its
+  // advertisement
   if(data->window.skipped_windows < 2) {
     data->window.buf[data->window.cur] = metrics->conn_rx_frame_interval;
 
@@ -74,6 +77,7 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
     if(interval > mean + THRESHOLD || interval < mean - THRESHOLD) {
       log(metrics->conn_access_addr, "INJECTABLE", 8);
     } else {
+      // We want to ignore the value if an attack has been detected
       data->window.buf[data->window.cur] = metrics->conn_rx_frame_interval;
       data->window.cur += 1;
       data->window.cur %= WINDOW_SIZE;

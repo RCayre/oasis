@@ -12,7 +12,7 @@
 typedef struct circ_buffer {
   uint32_t buf[WINDOW_SIZE];
   uint8_t cur;
-  uint8_t is_init;
+  uint8_t skipped_windows;
 } circ_buffer_t;
 
 typedef struct injectable_data {
@@ -35,7 +35,7 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
     // Add an entry if it wasn't found
     data = (injectable_data_t *) malloc(sizeof(injectable_data_t));
     data->window.cur = 0;
-    data->window.is_init = 0;
+    data->window.skipped_windows = 0;
     data->threshold = 0;
     data->under_attack = 0;
     int err = hashmap_put(hashmap, metrics->conn_access_addr, data);
@@ -52,12 +52,12 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
     return;
   }
 
-  if(data->window.is_init < 2) {
+  if(data->window.skipped_windows < 2) {
     data->window.buf[data->window.cur] = metrics->conn_rx_frame_interval;
 
     // If the window has been entirely filled
     if(data->window.cur == WINDOW_SIZE - 1) {
-      data->window.is_init += 1; 
+      data->window.skipped_windows += 1; 
     }
 
     data->window.cur += 1;

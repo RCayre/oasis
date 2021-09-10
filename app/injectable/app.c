@@ -7,11 +7,12 @@
 
 #define WINDOW_SIZE 36
 #define HASHMAP_SIZE 16
+#define THRESHOLD 100
 
 typedef struct circ_buffer {
   uint32_t buf[WINDOW_SIZE];
   uint8_t cur;
-  bool is_init;
+  uint8_t is_init;
 } circ_buffer_t;
 
 typedef struct injectable_data {
@@ -51,32 +52,32 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
     return;
   }
 
-  data->window.buf[data->window.cur] = metrics->conn_rx_frame_interval;
+  if(data->window.is_init < 2) {
+    data->window.buf[data->window.cur] = metrics->conn_rx_frame_interval;
 
-  log(metrics->conn_rx_frame_header, &metrics->conn_rx_frame_interval, 4);
+    // If the window has been entirely filled
+    if(data->window.cur == WINDOW_SIZE - 1) {
+      data->window.is_init += 1; 
+    }
 
-  // If the window has been entirely filled
-  if(!data->window.is_init && data->window.cur == WINDOW_SIZE - 1) {
-    data->window.is_init = 1; 
-//    log(metrics->conn_access_addr, "GOOD", 4);
-  }
+    data->window.cur += 1;
+    data->window.cur %= WINDOW_SIZE;
 
-  data->window.cur += 1;
-  data->window.cur %= WINDOW_SIZE;
-
-  if(data->window.is_init) {
+  } else {
     uint32_t mean = 0;
     for(int i = 0; i < WINDOW_SIZE; i++) {
       mean += data->window.buf[i];
     }
     mean /= WINDOW_SIZE;
 
-
     uint32_t interval = metrics->conn_rx_frame_interval;
-    if(interval > mean + 10 || interval < mean - 10) {
+    if(interval > mean + THRESHOLD || interval < mean - THRESHOLD) {
       log(metrics->conn_access_addr, "INJECTABLE", 8);
+    } else {
+      data->window.buf[data->window.cur] = metrics->conn_rx_frame_interval;
+      data->window.cur += 1;
+      data->window.cur %= WINDOW_SIZE;
     }
-
   }
 }
 

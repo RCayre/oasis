@@ -43,9 +43,9 @@ void on_scan() {
     metrics.scan_rx_channel = *channel;
 
     // Get the buffer
-    memcpybt8(metrics.scan_rx_frame, rx_buffer, metrics.scan_rx_frame_size);
+    memcpybt8(metrics.scan_rx_frame_payload, rx_buffer, metrics.scan_rx_frame_size);
     // Get the Adv Address (first 6 bytes)
-    memcpy(metrics.scan_rx_frame_adv_addr, metrics.scan_rx_frame, 6);
+    memcpy(metrics.scan_rx_frame_adv_addr, metrics.scan_rx_frame_payload, 6);
 
     // Initialize the timestamp hashmap if it hasn't been initialized yet
     if(timestamp_hashmap == NULL) {

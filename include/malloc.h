@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+#define HEAP_SIZE 0x1000
+
 /**
  * @brief Allocates memory
  * @param size  size in bytes

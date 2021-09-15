@@ -48,3 +48,10 @@ uint8_t * rx_header = (uint8_t *) 0x318B98;
 uint8_t * rx_buffer = (uint8_t *) 0x370C00;
 uint8_t * status = (uint8_t *) 0x318BAC;
 uint8_t * channel = (uint8_t *) 0x283356;
+
+uint8_t CHANNEL_MAP_OFFSET = 116;
+uint8_t SECOND_STRUCT_OFFSET = 80;
+uint8_t HOP_INTERVAL_STRUCT_OFFSET = 34;
+uint8_t SLAVE_LATENCY_STRUCT_OFFSET = 35;
+uint8_t CRC_INIT_OFFSET_IN_SECOND_STRUCT = 0;
+uint8_t ACCESS_ADDR_OFFSET_IN_SECOND_STRUCT = 52;

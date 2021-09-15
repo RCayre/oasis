@@ -15,7 +15,7 @@ typedef struct metrics {
   uint8_t scan_rx_frame_size;
   uint8_t scan_rx_frame_pdu_type;
 
-  uint8_t scan_rx_frame[255];
+  uint8_t scan_rx_frame_payload[255];
   uint8_t scan_rx_frame_adv_addr[6];
 
   int32_t scan_rx_rssi;
@@ -28,6 +28,10 @@ typedef struct metrics {
   uint32_t conn_rx_frame_interval;
   bool conn_rx_crc_good;
   uint8_t conn_rx_frame_header[2];
+  uint8_t conn_rx_frame_size;
+  uint8_t conn_rx_frame_payload[40];
+  uint8_t slave_latency;
+  uint8_t hop_interval;
 } metrics_t;
 
 #endif

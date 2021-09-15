@@ -1,7 +1,7 @@
 MEMORY
 {
-	lowrom (rwx) : ORIGIN = 0x20de94, LENGTH = 0xd43
-	midrom (rwx) : ORIGIN = 0xd7500, LENGTH = 0x500
+	lowrom (rwx) : ORIGIN = 0x220900, LENGTH = 0xf43
+	midrom (rwx) : ORIGIN = 0x213e14, LENGTH = 0x1000
 }
 
 

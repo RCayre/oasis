@@ -5,7 +5,7 @@
 #include "hashmap.h"
 #include "malloc.h"
 
-#define WINDOW_SIZE 36
+#define WINDOW_SIZE 24
 #define HASHMAP_SIZE 16
 #define THRESHOLD 100
 
@@ -17,8 +17,7 @@ typedef struct circ_buffer {
 
 typedef struct injectable_data {
   circ_buffer_t window;
-  uint32_t threshold;
-  bool under_attack;
+  uint8_t last_hop_interval;
 } injectable_data_t;
 
 static hashmap_t * hashmap = NULL;
@@ -36,8 +35,7 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
     data = (injectable_data_t *) malloc(sizeof(injectable_data_t));
     data->window.cur = 0;
     data->window.skipped_windows = 0;
-    data->threshold = 0;
-    data->under_attack = 0;
+    data->last_hop_interval = 0;
     int err = hashmap_put(hashmap, metrics->conn_access_addr, data);
     // If there was not enough memory, skip
     if(err == -1) {
@@ -52,10 +50,17 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
     return;
   }
 
-  // We want to ignore two windows to comply with a device that
-  // might advertise quickly at the beginning before slowing down its
-  // advertisement
-  if(data->window.skipped_windows < 2) {
+  // We want to reset the window if there is a connection update
+  if((data->last_hop_interval != 0) && (data->last_hop_interval != metrics->hop_interval)) {
+    data->window.skipped_windows = 0;
+    data->window.cur = 0;
+    data->last_hop_interval = metrics->hop_interval;
+    return;
+  }
+
+  data->last_hop_interval = metrics->hop_interval;
+
+  if(data->window.skipped_windows < 1) {
     data->window.buf[data->window.cur] = metrics->conn_rx_frame_interval;
 
     // If the window has been entirely filled
@@ -65,17 +70,20 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
 
     data->window.cur += 1;
     data->window.cur %= WINDOW_SIZE;
-
   } else {
-    uint32_t mean = 0;
-    for(int i = 0; i < WINDOW_SIZE; i++) {
-      mean += data->window.buf[i];
+    uint32_t min = data->window.buf[0];
+    for(int i = 1; i < WINDOW_SIZE; i++) {
+      uint32_t v = data->window.buf[i];
+      if(v < min) {
+        min = v;
+      }
     }
-    mean /= WINDOW_SIZE;
 
     uint32_t interval = metrics->conn_rx_frame_interval;
-    if(interval > mean + THRESHOLD || interval < mean - THRESHOLD) {
-      log(metrics->conn_access_addr, "INJECTABLE", 8);
+    log(NULL, &interval, 4);
+    log(NULL, &min, 4);
+    if(interval > min * (1 + metrics->slave_latency) + THRESHOLD) {
+      log(&interval, "INJECTABLE", 9);
     } else {
       // We want to ignore the value if an attack has been detected
       data->window.buf[data->window.cur] = metrics->conn_rx_frame_interval;

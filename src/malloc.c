@@ -3,7 +3,6 @@
 #include "functions.h"
 #include "log.h"
 
-#define SIZE 0x3000
 
 typedef struct block {
   uint16_t size;
@@ -14,7 +13,7 @@ typedef struct block {
 
 // Memory region to be used for allocating data
 __attribute__((section(".bss.memory")))
-uint8_t memory[SIZE];
+uint8_t memory[HEAP_SIZE];
 
 // A linked list of the blocks in memory
 block_t * blocks = NULL;
@@ -74,7 +73,7 @@ void * malloc(uint16_t size) {
   // Initialize the memory if new
   if(blocks == NULL) {
     blocks = (block_t*)memory;
-    blocks->size = SIZE - sizeof(block_t);
+    blocks->size = HEAP_SIZE - sizeof(block_t);
     blocks->free = 1;
     blocks->next = NULL;
   }

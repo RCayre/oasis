@@ -21,7 +21,6 @@ void on_conn_header() {
 }
 
 void on_conn(void * ptr) {
-  log(NULL, &current_timestamp, 4); 
   if(timestamp_hashmap == NULL) {
     timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 4);
   }
@@ -69,9 +68,9 @@ void on_conn(void * ptr) {
     }
   }
 
-//  for(int i = 0; i < conn_callbacks_size; i++) {
-//    conn_callbacks[i](&metrics);
-//  }
+  for(int i = 0; i < conn_callbacks_size; i++) {
+    conn_callbacks[i](&metrics);
+  }
 }
 
 void on_conn_delete(void * ptr) {

@@ -30,6 +30,7 @@ void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {
 
     if(same) {
       log(NULL, "BTLEJUICE", 9);
+      stop_scan();
     }
   }
 }

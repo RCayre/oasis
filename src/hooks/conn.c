@@ -3,6 +3,7 @@
 #include "metrics.h"
 #include "hashmap.h"
 #include "malloc.h"
+#include "hci.h"
 
 #define TIMESTAMP_HASHMAP_SIZE 16
 
@@ -14,6 +15,8 @@ extern callback_t conn_callbacks[];
 static hashmap_t * timestamp_hashmap = NULL;
 
 static uint32_t current_timestamp;
+
+static bool yes = 0;
 
 void on_conn_header() {
   current_timestamp = get_timestamp_in_us(); 
@@ -45,7 +48,7 @@ void on_conn(void * ptr) {
   // Check if the CRC is good
   metrics.conn_rx_crc_good = (*status & 0x2) == 2;
 
-  log(NULL, &metrics.is_slave, 1);
+  //log(NULL, &metrics.is_slave, 1);
 
   // Get the previous timestamp for this address
   void * previous_timestamp = hashmap_get(timestamp_hashmap, metrics.conn_access_addr);
@@ -69,7 +72,7 @@ void on_conn(void * ptr) {
     }
   }
 
-//  for(int i = 0; i < conn_callbacks_size; i++) {
-//    conn_callbacks[i](&metrics);
-//  }
+  for(int i = 0; i < conn_callbacks_size; i++) {
+    conn_callbacks[i](&metrics);
+  }
 }

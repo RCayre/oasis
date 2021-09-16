@@ -36,6 +36,8 @@ void on_scan() {
 
   if(metrics.scan_rx_done && metrics.scan_rx_frame_pdu_type == 0 && mutex == 0) {
     mutex = 1;
+    // Get our own addr
+    memcpy(metrics.own_addr, own_addr, 6);
 
     // Get the RSSI
     metrics.scan_rx_rssi = get_rssi();
@@ -70,9 +72,9 @@ void on_scan() {
       *(uint32_t *)previous_timestamp = current_timestamp;
     }
 
-    //for(int i = 0; i < scan_callbacks_size; i++) {
-    //  scan_callbacks[i](&metrics);
-    //}
+    for(int i = 0; i < scan_callbacks_size; i++) {
+      scan_callbacks[i](&metrics);
+    }
 
     mutex = 0;
   }

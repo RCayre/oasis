@@ -4,6 +4,8 @@
 #include "types.h"
 
 typedef struct metrics {
+  uint8_t own_addr[6];
+
   /* SCAN */
   uint16_t scan_status;
   bool scan_rx_done;

@@ -56,3 +56,7 @@ uint8_t SECOND_STRUCT_OFFSET = 80;
 //uint8_t SLAVE_LATENCY_STRUCT_OFFSET = 35;
 uint8_t CRC_INIT_OFFSET_IN_SECOND_STRUCT = 0;
 uint8_t ACCESS_ADDR_OFFSET_IN_SECOND_STRUCT = 52;
+
+uint8_t * hci_table = (uint8_t *) 0x143ea8;
+
+uint8_t * own_addr = (uint8_t *) 0x280ca4;

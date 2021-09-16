@@ -15,6 +15,10 @@ extern uint8_t SECOND_STRUCT_OFFSET;
 extern uint8_t CRC_INIT_OFFSET_IN_SECOND_STRUCT;
 extern uint8_t ACCESS_ADDR_OFFSET_IN_SECOND_STRUCT;
 
+extern uint8_t * hci_table;
+
+extern uint8_t * own_addr;
+
 void * memcpy(void *dst, void* src, uint32_t size);
 
 void * memcpybt8(void* dst, void* src, uint32_t size);

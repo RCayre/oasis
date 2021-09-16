@@ -32,6 +32,7 @@ typedef struct metrics {
   uint8_t conn_rx_frame_payload[40];
   uint8_t slave_latency;
   uint8_t hop_interval;
+  bool is_slave;
 } metrics_t;
 
 #endif

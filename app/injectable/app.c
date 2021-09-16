@@ -23,6 +23,11 @@ typedef struct injectable_data {
 static hashmap_t * hashmap = NULL;
 
 void CONN_CALLBACK(injectable)(metrics_t * metrics) {
+  // This detection is intended to be used as a slave
+  if(!metrics.is_slave) {
+    return;
+  }
+
   if(hashmap == NULL) {
     hashmap = hashmap_initialize(HASHMAP_SIZE, NULL, 4);
   }
@@ -50,17 +55,9 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
     return;
   }
 
-  // We want to reset the window if there is a connection update
-  if((data->last_hop_interval != 0) && (data->last_hop_interval != metrics->hop_interval)) {
-    data->window.skipped_windows = 0;
-    data->window.cur = 0;
-    data->last_hop_interval = metrics->hop_interval;
-    return;
-  }
-
   data->last_hop_interval = metrics->hop_interval;
 
-  if(data->window.skipped_windows < 1) {
+  if(data->window.skipped_windows < 2) {
     data->window.buf[data->window.cur] = metrics->conn_rx_frame_interval;
 
     // If the window has been entirely filled
@@ -71,18 +68,14 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
     data->window.cur += 1;
     data->window.cur %= WINDOW_SIZE;
   } else {
-    uint32_t min = data->window.buf[0];
-    for(int i = 1; i < WINDOW_SIZE; i++) {
-      uint32_t v = data->window.buf[i];
-      if(v < min) {
-        min = v;
-      }
+    uint32_t mean = 0;
+    for(int i = 0; i < WINDOW_SIZE; i++) {
+      mean += data->window.buf[i];
     }
+    mean /= WINDOW_SIZE;
 
     uint32_t interval = metrics->conn_rx_frame_interval;
-    log(NULL, &interval, 4);
-    log(NULL, &min, 4);
-    if(interval > min * (1 + metrics->slave_latency) + THRESHOLD) {
+    if(interval > mean + THRESHOLD) {
       log(&interval, "INJECTABLE", 9);
     } else {
       // We want to ignore the value if an attack has been detected

@@ -24,9 +24,10 @@ void on_conn(void * ptr) {
     timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 4);
   }
 
+  metrics.is_slave = *(uint8_t *)(ptr + IS_SLAVE_OFFSET) != 0;
   memcpy(metrics.conn_channel_map, ptr + CHANNEL_MAP_OFFSET, 6);
-  metrics.slave_latency = *(uint8_t *)(ptr + SLAVE_LATENCY_STRUCT_OFFSET);
-  metrics.hop_interval = *(uint8_t *)(ptr + HOP_INTERVAL_STRUCT_OFFSET);
+//  metrics.slave_latency = *(uint8_t *)(ptr + SLAVE_LATENCY_STRUCT_OFFSET);
+//  metrics.hop_interval = *(uint8_t *)(ptr + HOP_INTERVAL_STRUCT_OFFSET);
   // Pointer to the second structure 
   void * p = *(void**)(ptr + SECOND_STRUCT_OFFSET);
   metrics.conn_crc_init = *(uint32_t*)(p + CRC_INIT_OFFSET_IN_SECOND_STRUCT);
@@ -43,6 +44,8 @@ void on_conn(void * ptr) {
 
   // Check if the CRC is good
   metrics.conn_rx_crc_good = (*status & 0x2) == 2;
+
+  log(NULL, &metrics.is_slave, 1);
 
   // Get the previous timestamp for this address
   void * previous_timestamp = hashmap_get(timestamp_hashmap, metrics.conn_access_addr);
@@ -66,7 +69,7 @@ void on_conn(void * ptr) {
     }
   }
 
-  for(int i = 0; i < conn_callbacks_size; i++) {
-    conn_callbacks[i](&metrics);
-  }
+//  for(int i = 0; i < conn_callbacks_size; i++) {
+//    conn_callbacks[i](&metrics);
+//  }
 }

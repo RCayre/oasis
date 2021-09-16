@@ -38,11 +38,7 @@ void CONN_CALLBACK(btlejack)(metrics_t * metrics) {
 
   if(!data->is_init) {
     data->is_init = 1;
-    uint8_t addr[6];
-    memcpy(addr, metrics->conn_access_addr, 4);
-    addr[4] = 0;
-    addr[5] = 0;
-    log(addr, &metrics->conn_crc_init, 4);
+    log(metrics->conn_access_addr, &metrics->conn_crc_init, 4);
   }
 
   data->crc_counter += !metrics->conn_rx_crc_good;

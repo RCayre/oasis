@@ -9,10 +9,9 @@ extern uint8_t * rx_buffer;
 extern uint8_t * status;
 extern uint8_t * channel;
 
+extern uint8_t IS_SLAVE_OFFSET;
 extern uint8_t CHANNEL_MAP_OFFSET;
 extern uint8_t SECOND_STRUCT_OFFSET;
-extern uint8_t HOP_INTERVAL_STRUCT_OFFSET;
-extern uint8_t SLAVE_LATENCY_STRUCT_OFFSET;
 extern uint8_t CRC_INIT_OFFSET_IN_SECOND_STRUCT;
 extern uint8_t ACCESS_ADDR_OFFSET_IN_SECOND_STRUCT;
 

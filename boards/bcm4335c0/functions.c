@@ -50,6 +50,7 @@ uint8_t * rx_buffer = (uint8_t *) 0x370880;
 uint8_t * status = (uint8_t *) 0x318BAC;
 uint8_t * channel = (uint8_t *) 0x20d6fa;
 
+uint8_t IS_SLAVE_OFFSET = 15;
 uint8_t CHANNEL_MAP_OFFSET = 116;
 uint8_t SECOND_STRUCT_OFFSET = 72;
 uint8_t CRC_INIT_OFFSET_IN_SECOND_STRUCT = 0;

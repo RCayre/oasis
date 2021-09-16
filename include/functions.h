@@ -16,17 +16,12 @@ extern uint8_t CRC_INIT_OFFSET_IN_SECOND_STRUCT;
 extern uint8_t ACCESS_ADDR_OFFSET_IN_SECOND_STRUCT;
 
 extern uint8_t * hci_table;
-
 extern uint8_t * own_addr;
 
 void * memcpy(void *dst, void* src, uint32_t size);
-
 void * memcpybt8(void* dst, void* src, uint32_t size);
-
 void send_hci(uint8_t opcode, void * content, uint32_t size);
-
 uint32_t get_timestamp_in_us();
-
 int get_rssi();
 
 #endif

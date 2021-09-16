@@ -16,13 +16,12 @@ static hashmap_t * timestamp_hashmap = NULL;
 
 static uint32_t current_timestamp;
 
-static bool yes = 0;
-
 void on_conn_header() {
   current_timestamp = get_timestamp_in_us(); 
 }
 
 void on_conn(void * ptr) {
+  log(NULL, &current_timestamp, 4); 
   if(timestamp_hashmap == NULL) {
     timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 4);
   }
@@ -48,8 +47,6 @@ void on_conn(void * ptr) {
   // Check if the CRC is good
   metrics.conn_rx_crc_good = (*status & 0x2) == 2;
 
-  //log(NULL, &metrics.is_slave, 1);
-
   // Get the previous timestamp for this address
   void * previous_timestamp = hashmap_get(timestamp_hashmap, metrics.conn_access_addr);
   if(previous_timestamp == NULL) {
@@ -72,7 +69,16 @@ void on_conn(void * ptr) {
     }
   }
 
-  for(int i = 0; i < conn_callbacks_size; i++) {
-    conn_callbacks[i](&metrics);
-  }
+//  for(int i = 0; i < conn_callbacks_size; i++) {
+//    conn_callbacks[i](&metrics);
+//  }
+}
+
+void on_conn_delete(void * ptr) {
+  uint8_t access_addr[4];
+  void * p = *(void**)(ptr + SECOND_STRUCT_OFFSET);
+  memcpy(access_addr, p + ACCESS_ADDR_OFFSET_IN_SECOND_STRUCT, 4);
+
+  // Cleanup this connection
+  hashmap_delete(timestamp_hashmap, access_addr); 
 }

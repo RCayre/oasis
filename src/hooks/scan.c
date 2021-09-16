@@ -72,11 +72,14 @@ void on_scan() {
       *(uint32_t *)previous_timestamp = current_timestamp;
     }
 
-    for(int i = 0; i < scan_callbacks_size; i++) {
-      scan_callbacks[i](&metrics);
-    }
+//    for(int i = 0; i < scan_callbacks_size; i++) {
+//      scan_callbacks[i](&metrics);
+//    }
 
     mutex = 0;
   }
+}
 
+void on_scan_delete() {
+  hashmap_free(&timestamp_hashmap);
 }

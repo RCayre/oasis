@@ -3,7 +3,6 @@
 #include "functions.h"
 #include "log.h"
 
-
 typedef struct block {
   uint16_t size;
   uint8_t free;

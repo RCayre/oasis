@@ -80,7 +80,7 @@ $(BUILD_DIR)/patches.csv: $(BUILD_DIR)/symbols.sym
 build: clean create_builddir $(BUILD_DIR)/patches.csv
 
 patch: build
-	sudo python3 $(SCRIPTS_DIR)/patcher.py $(BUILD_DIR)/patches.csv $(CORE_TYPE)
+	sudo python3 $(CONF_DIR)/patcher.py $(BUILD_DIR)/patches.csv
 	rm -f btsnoop.log
 	
 clean:

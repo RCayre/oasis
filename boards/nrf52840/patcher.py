@@ -1,5 +1,6 @@
 import sys,os
 from math import ceil, log
+import subprocess
 
 def checksum(line):
     line = bytes.fromhex(line[1:])
@@ -81,21 +82,25 @@ def write(buf, so, address, data):
         buf = buf[:address-so]+ data + buf[address+len(data)-so:]
     return buf
 
+def get_file_dir():
+    return "/".join(__file__.split("/")[:-1])
+
+def run(command):
+    process = subprocess.Popen(command.split(), stderr=subprocess.DEVNULL)
+    process.communicate()
+    return process.returncode
 
 
 
 
-if len(sys.argv) != 5:
-    print("Usage: "+sys.argv[0]+" <input hex file> <patch file> <linker file> <output hex file>")
+if len(sys.argv) != 2:
+    print("Usage: "+sys.argv[0]+" <patch file>")
     exit(1)
 
-inputHexFile = sys.argv[1]
-patchFile = sys.argv[2]
-if not os.path.isfile(patchFile):
-    print("Patch file not found !")
-    exit(2)
-linkerFile = sys.argv[3]
-outputHexFile = sys.argv[4]
+inputHexFile = get_file_dir() + "/zephyr.hex"
+patchFile = sys.argv[1]
+linkerFile = get_file_dir() + "/linker.ld"
+outputHexFile = "build/out.hex"
 
 # Get the address of the ram section
 ramStart = None
@@ -123,13 +128,28 @@ with open(patchFile,"r") as f:
         patchAddress = int(patchAddress,16)
         if patchAddress >= ramStart:
             dataAddress = patchAddress - ramStart + 0x1e350
-            print(hex(dataAddress), hex(codeStart), patch)
+            print("[DATA] Writing " + name + " at " + hex(dataAddress) + ".")
             if dataAddress + len(bytes.fromhex(patchContent)) >= codeStart:
                 print("Data section overwrites the code section by", dataAddress + len(bytes.fromhex(patchContent)) - codeStart, "bytes")
                 exit(1)
             buffer = write(buffer, so, dataAddress, bytes.fromhex(patchContent))
         else:
+            print("[FLASH] Writing " + name + " at " + hex(patchAddress) + ".")
             buffer = write(buffer, so, patchAddress, bytes.fromhex(patchContent))
 
 with open(outputHexFile, "w") as f:
     f.write(internalToHex(so, buffer, cs, ip))
+
+print("\nGenerating DFU package ...")
+run("rm -f build/dfu.zip")
+err = run("nrfutil pkg generate --hw-version 52 --sd-req 0x00 --debug-mode --application build/out.hex build/dfu.zip")
+if err != 0:
+    print("Error while generating dfu.zip")
+    exit(1)
+print("Flashing device ...")
+device = "/dev/ttyACM1"
+err = run("nrfutil dfu usb-serial -pkg build/dfu.zip -p " + device + " -b 115200")
+if err != 0:
+    print("Error while flashing the device", device)
+    exit(1)
+print("Flashing successfull :)")

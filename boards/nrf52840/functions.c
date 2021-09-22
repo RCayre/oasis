@@ -1,10 +1,14 @@
 #include "functions.h"
+#include "log.h"
 
 #define RAM_DATA_START (void*)0x20006000
 #define DATA_START (void*)0x1e350
-#define CODE_START (void*)0x1f500
+#define CODE_START (void*)0x20000
 
 void * _memcpy(void * dst, void * src, uint32_t size);
+void * bt_hci_event_create(uint8_t opcode, uint8_t size);
+void * net_buf_simple_add(void * evt, uint8_t size);
+void bt_recv_prio(void *evt);
 
 /**
  * Board specific hook
@@ -12,6 +16,9 @@ void * _memcpy(void * dst, void * src, uint32_t size);
 
 void on_init() {
   memcpy(RAM_DATA_START, DATA_START, (uint32_t)CODE_START - (uint32_t)DATA_START); 
+}
+
+void on_rx() {
 }
 
 /**
@@ -27,6 +34,10 @@ void * memcpybt8(void * dst, void * src, uint32_t size) {
 }
 
 void send_hci(uint8_t opcode, void * content, uint32_t size) {
+  void * evt = bt_hci_event_create(opcode, size);
+  uint8_t * buf = net_buf_simple_add(evt+8, size);
+  memcpy(buf, content, size);
+  bt_recv_prio(evt);
 }
 
 uint32_t get_timestamp_in_us() {

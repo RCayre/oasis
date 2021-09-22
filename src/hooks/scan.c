@@ -1,5 +1,6 @@
-#include "log.h"
+#include "hooks.h"
 
+#include "log.h"
 #include "functions.h"
 #include "metrics.h"
 #include "hashmap.h"
@@ -22,30 +23,29 @@ static bool check_timeout(void * data) {
   return (current_timestamp - *(uint32_t *)data) > TIMESTAMP_HASHMAP_TIMEOUT;
 }
 
-void on_scan_header() {
+void process_scan_rx_header() {
 
 }
 
-void on_scan() {
-  memcpybt8(metrics.scan_rx_frame_header, rx_header, 2);
+void process_scan_rx() {
+  copy_header(metrics.scan_rx_frame_header);
   metrics.scan_rx_frame_size = metrics.scan_rx_frame_header[1];
   metrics.scan_rx_frame_pdu_type = metrics.scan_rx_frame_header[0] & 0xF;
   
-  metrics.scan_status = *status;
-  metrics.scan_rx_done = metrics.scan_status & 0x4;
+  metrics.scan_rx_done = is_rx_done();
 
   if(metrics.scan_rx_done && metrics.scan_rx_frame_pdu_type == 0 && mutex == 0) {
     mutex = 1;
     // Get our own addr
-    memcpy(metrics.own_addr, own_addr, 6);
+    copy_own_adv_addr(metrics.own_addr);
 
     // Get the RSSI
     metrics.scan_rx_rssi = get_rssi();
     // Get the channel
-    metrics.scan_rx_channel = *channel;
+    metrics.scan_rx_channel = get_channel();
 
     // Get the buffer
-    memcpybt8(metrics.scan_rx_frame_payload, rx_buffer, metrics.scan_rx_frame_size);
+    copy_buffer(metrics.scan_rx_frame_payload, metrics.scan_rx_frame_size);
     // Get the Adv Address (first 6 bytes)
     memcpy(metrics.scan_rx_frame_adv_addr, metrics.scan_rx_frame_payload, 6);
 
@@ -68,6 +68,8 @@ void on_scan() {
       // Compute the frame interval
       metrics.scan_rx_frame_interval = current_timestamp - *(uint32_t *)previous_timestamp;
 
+      log(metrics.scan_rx_frame_adv_addr, &metrics.scan_rx_frame_interval, 4);
+
       // Save the new timestamp
       *(uint32_t *)previous_timestamp = current_timestamp;
     }
@@ -80,6 +82,6 @@ void on_scan() {
   }
 }
 
-void on_scan_delete() {
+void process_scan_delete() {
   hashmap_free(&timestamp_hashmap);
 }

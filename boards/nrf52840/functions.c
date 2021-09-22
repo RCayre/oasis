@@ -1,4 +1,5 @@
 #include "functions.h"
+#include "hooks.h"
 #include "log.h"
 
 #define RAM_DATA_START (void*)0x20006000
@@ -9,17 +10,35 @@ void * _memcpy(void * dst, void * src, uint32_t size);
 void * bt_hci_event_create(uint8_t opcode, uint8_t size);
 void * net_buf_simple_add(void * evt, uint8_t size);
 void bt_recv_prio(void *evt);
+bool radio_crc_is_valid();
+int32_t radio_rssi_get();
+uint32_t sys_clock_tick_get();
+uint8_t radio_is_done();
 
 /**
- * Board specific hook
+ * Hooks
  */
 
 void on_init() {
   memcpy(RAM_DATA_START, DATA_START, (uint32_t)CODE_START - (uint32_t)DATA_START); 
 }
 
-void on_rx() {
+void on_scan() {
+  uint32_t t = *(uint32_t*)0x3d09000;
+  log(NULL, &t, 4);
+//  process_scan_rx_header();
+//  process_scan_rx();
 }
+
+void on_conn() {
+//  process_conn_rx_header();
+//  process_conn_rx(); 
+}
+
+/**
+ * Registers
+ */
+uint32_t * rx_buffer_ptr = (uint32_t *)0x40001504;
 
 /**
  * API implementation
@@ -27,10 +46,6 @@ void on_rx() {
 
 void * memcpy(void * dst, void * src, uint32_t size) {
   return _memcpy(dst, src, size);
-}
-
-void * memcpybt8(void * dst, void * src, uint32_t size) {
-  return NULL;
 }
 
 void send_hci(uint8_t opcode, void * content, uint32_t size) {
@@ -41,30 +56,54 @@ void send_hci(uint8_t opcode, void * content, uint32_t size) {
 }
 
 uint32_t get_timestamp_in_us() {
-  return 0;
+  return sys_clock_tick_get();
 }
 
 int get_rssi() {
+  return radio_rssi_get();
+}
+
+void copy_header(uint8_t * dst) {
+  memcpy(dst, (void*)*rx_buffer_ptr, 2);
+}
+
+bool is_rx_done() {
+  return (radio_is_done() & 0xFF) != 0;
+}
+
+void copy_own_adv_addr(uint8_t * dst) {
+}
+
+uint8_t get_channel() {
   return 0;
 }
 
-/**
- * API registers
- */
+void copy_buffer(uint8_t * dst, uint8_t size) {
+  memcpy(dst, (void*)(*rx_buffer_ptr + 2), size);
+}
 
-uint8_t * rx_header = (uint8_t *) 0x318B98;
-uint8_t * rx_buffer = (uint8_t *) 0x370C00;
-uint8_t * status = (uint8_t *) 0x318BAC;
-uint8_t * channel = (uint8_t *) 0x283356;
+bool is_slave() {
+  return 0;
+}
 
-uint8_t IS_SLAVE_OFFSET = 15;
-uint8_t CHANNEL_MAP_OFFSET = 116;
-uint8_t SECOND_STRUCT_OFFSET = 80;
-//uint8_t HOP_INTERVAL_STRUCT_OFFSET = 34;
-//uint8_t SLAVE_LATENCY_STRUCT_OFFSET = 35;
-uint8_t CRC_INIT_OFFSET_IN_SECOND_STRUCT = 0;
-uint8_t ACCESS_ADDR_OFFSET_IN_SECOND_STRUCT = 52;
+void copy_channel_map(uint8_t * dst) {
+}
 
-uint8_t * hci_table = (uint8_t *) 0x143ea8;
+uint8_t get_hop_interval() {
+  return 0;
+}
 
-uint8_t * own_addr = (uint8_t *) 0x280ca4;
+uint32_t get_crc_init() {
+  return 0;
+}
+
+void copy_access_addr(uint8_t * dst) {
+}
+
+bool is_crc_good() {
+  return radio_crc_is_valid();
+}
+
+void launch_hci_command(uint16_t opcode, uint8_t * buffer, uint8_t size) {
+
+}

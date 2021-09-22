@@ -1,26 +1,17 @@
 from internalblue.hcicore import HCICore
-from internalblue.adbcore import ADBCore
 import sys,os
 
-if len(sys.argv) != 3:
-    print("Usage: "+sys.argv[0]+" <patch file> <core type>")
+if len(sys.argv) != 2:
+    print("Usage: "+sys.argv[0]+" <patch file>")
     exit(1)
 
 if not os.path.isfile(sys.argv[1]):
     print("Patch file not found !")
     exit(2)
-if not sys.argv[2] in ("ADB_SERIAL","ADB","HCI"):
-    print("Core type not found !")
-    exit(3)
 with open(sys.argv[1],"r") as f: 
     patches = [line.replace("\n","").split(",") for line in f.readlines()]
 
-    if sys.argv[2] == "ADB_SERIAL":
-        internalblue = ADBCore(serial=True)
-    elif sys.argv[2] == "ADB":
-        internalblue = ADBCore(serial=False)
-    else:
-        internalblue = HCICore()
+    internalblue = HCICore()
 
     device_list = internalblue.device_list()
     if len(device_list) == 0:

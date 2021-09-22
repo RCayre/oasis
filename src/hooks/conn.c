@@ -1,3 +1,5 @@
+#include "hooks.h"
+
 #include "log.h"
 #include "functions.h"
 #include "metrics.h"
@@ -16,35 +18,28 @@ static hashmap_t * timestamp_hashmap = NULL;
 
 static uint32_t current_timestamp;
 
-void on_conn_header() {
+void process_conn_rx_header() {
   current_timestamp = get_timestamp_in_us(); 
 }
 
-void on_conn(void * ptr) {
+void process_conn_rx() {
   if(timestamp_hashmap == NULL) {
     timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 4);
   }
 
-  metrics.is_slave = *(uint8_t *)(ptr + IS_SLAVE_OFFSET) != 0;
-  memcpy(metrics.conn_channel_map, ptr + CHANNEL_MAP_OFFSET, 6);
-//  metrics.slave_latency = *(uint8_t *)(ptr + SLAVE_LATENCY_STRUCT_OFFSET);
-//  metrics.hop_interval = *(uint8_t *)(ptr + HOP_INTERVAL_STRUCT_OFFSET);
-  // Pointer to the second structure 
-  void * p = *(void**)(ptr + SECOND_STRUCT_OFFSET);
-  metrics.conn_crc_init = *(uint32_t*)(p + CRC_INIT_OFFSET_IN_SECOND_STRUCT);
-  memcpy(metrics.conn_access_addr, p + ACCESS_ADDR_OFFSET_IN_SECOND_STRUCT, 4);
+  metrics.is_slave = is_slave();
+  copy_channel_map(metrics.conn_channel_map);
+  metrics.hop_interval = get_hop_interval();
+  metrics.conn_crc_init = get_crc_init();
+  copy_access_addr(metrics.conn_access_addr);
 
-  uint8_t header[2];
-  memcpybt8(header, rx_header, 2);
-  memcpy(metrics.conn_rx_frame_header, header, 2);
-  metrics.conn_rx_frame_size = header[1];
+  copy_header(metrics.conn_rx_frame_header);
+  metrics.conn_rx_frame_size = metrics.conn_rx_frame_header[1];
 
-  uint8_t buffer[40];
-  memcpybt8(buffer, rx_buffer, metrics.conn_rx_frame_size);
-  memcpy(metrics.conn_rx_frame_payload, buffer, metrics.conn_rx_frame_size);
+  copy_buffer(metrics.conn_rx_frame_payload, metrics.conn_rx_frame_size);
 
   // Check if the CRC is good
-  metrics.conn_rx_crc_good = (*status & 0x2) == 2;
+  metrics.conn_rx_crc_good = is_crc_good();
 
   // Get the previous timestamp for this address
   void * previous_timestamp = hashmap_get(timestamp_hashmap, metrics.conn_access_addr);
@@ -63,20 +58,21 @@ void on_conn(void * ptr) {
       // Compute the frame interval
       metrics.conn_rx_frame_interval = current_timestamp - *(uint32_t *)previous_timestamp;
 
+      log(NULL, &metrics.conn_rx_frame_interval, 4);
+
       // Save the new timestamp
       *(uint32_t *)previous_timestamp = current_timestamp;
     }
   }
 
-  for(int i = 0; i < conn_callbacks_size; i++) {
-    conn_callbacks[i](&metrics);
-  }
+  //for(int i = 0; i < conn_callbacks_size; i++) {
+  //  conn_callbacks[i](&metrics);
+  //}
 }
 
-void on_conn_delete(void * ptr) {
+void process_conn_delete() {
   uint8_t access_addr[4];
-  void * p = *(void**)(ptr + SECOND_STRUCT_OFFSET);
-  memcpy(access_addr, p + ACCESS_ADDR_OFFSET_IN_SECOND_STRUCT, 4);
+  copy_access_addr(access_addr);
 
   // Cleanup this connection
   hashmap_delete(timestamp_hashmap, access_addr); 

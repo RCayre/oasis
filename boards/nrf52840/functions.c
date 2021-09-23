@@ -16,18 +16,42 @@ uint32_t sys_clock_tick_get();
 uint8_t radio_is_done();
 
 /**
+ * Registers
+ */
+uint32_t * rx_buffer_ptr = (uint32_t *)0x40001504;
+
+uint32_t * timer2_mode = (uint32_t *)0x4000a504;
+uint32_t * timer2_width = (uint32_t *)0x4000a508;
+uint32_t * timer2_prescaler = (uint32_t *)0x4000a510;
+uint32_t * timer2_intenclr = (uint32_t *)0x4000a308;
+uint32_t * timer2_clear = (uint32_t *)0x4000a00c;
+uint32_t * timer2_start = (uint32_t *)0x4000a000;
+uint32_t * timer2_capture1 = (uint32_t *)0x4000a044;
+uint32_t * timer2_cc1 = (uint32_t *)0x4000a544;
+
+void timer2_init() {
+  *timer2_mode = 0;
+	*timer2_width = 3;
+	*timer2_prescaler = 4;
+
+  *timer2_intenclr = (0xfff << 16);
+
+  *timer2_clear = 1;
+  *timer2_start = 1;
+}
+
+/**
  * Hooks
  */
 
 void on_init() {
   memcpy(RAM_DATA_START, DATA_START, (uint32_t)CODE_START - (uint32_t)DATA_START); 
+  timer2_init();
 }
 
 void on_scan() {
-  uint32_t t = *(uint32_t*)0x3d09000;
-  log(NULL, &t, 4);
-//  process_scan_rx_header();
-//  process_scan_rx();
+  process_scan_rx_header();
+  process_scan_rx();
 }
 
 void on_conn() {
@@ -35,10 +59,6 @@ void on_conn() {
 //  process_conn_rx(); 
 }
 
-/**
- * Registers
- */
-uint32_t * rx_buffer_ptr = (uint32_t *)0x40001504;
 
 /**
  * API implementation
@@ -56,7 +76,8 @@ void send_hci(uint8_t opcode, void * content, uint32_t size) {
 }
 
 uint32_t get_timestamp_in_us() {
-  return sys_clock_tick_get();
+  *timer2_capture1 = 1UL;
+	return *timer2_cc1;
 }
 
 int get_rssi() {
@@ -68,7 +89,7 @@ void copy_header(uint8_t * dst) {
 }
 
 bool is_rx_done() {
-  return (radio_is_done() & 0xFF) != 0;
+  return (radio_is_done() & 0xFF) != 0 && is_crc_good();
 }
 
 void copy_own_adv_addr(uint8_t * dst) {

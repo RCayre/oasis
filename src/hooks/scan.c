@@ -28,54 +28,57 @@ void process_scan_rx_header() {
 }
 
 void process_scan_rx() {
-  copy_header(metrics.scan_rx_frame_header);
-  metrics.scan_rx_frame_size = metrics.scan_rx_frame_header[1];
-  metrics.scan_rx_frame_pdu_type = metrics.scan_rx_frame_header[0] & 0xF;
-  
   metrics.scan_rx_done = is_rx_done();
 
-  if(metrics.scan_rx_done && metrics.scan_rx_frame_pdu_type == 0 && mutex == 0) {
+  if(metrics.scan_rx_done && mutex == 0) { 
     mutex = 1;
-    // Get our own addr
-    copy_own_adv_addr(metrics.own_addr);
 
-    // Get the RSSI
-    metrics.scan_rx_rssi = get_rssi();
-    // Get the channel
-    metrics.scan_rx_channel = get_channel();
+    copy_header(metrics.scan_rx_frame_header);
+    metrics.scan_rx_frame_size = metrics.scan_rx_frame_header[1];
+    metrics.scan_rx_frame_pdu_type = metrics.scan_rx_frame_header[0] & 0xF;
 
-    // Get the buffer
-    copy_buffer(metrics.scan_rx_frame_payload, metrics.scan_rx_frame_size);
-    // Get the Adv Address (first 6 bytes)
-    memcpy(metrics.scan_rx_frame_adv_addr, metrics.scan_rx_frame_payload, 6);
+    if(metrics.scan_rx_frame_pdu_type == 0) {
+      // Get our own addr
+      copy_own_adv_addr(metrics.own_addr);
 
-    // Initialize the timestamp hashmap if it hasn't been initialized yet
-    if(timestamp_hashmap == NULL) {
-      timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, check_timeout, 6);
-    }
+      // Get the RSSI
+      metrics.scan_rx_rssi = get_rssi();
+      // Get the channel
+      metrics.scan_rx_channel = get_channel();
 
-    uint32_t current_timestamp = get_timestamp_in_us(); 
-    // Get the previous timestamp for this address
-    void * previous_timestamp = hashmap_get(timestamp_hashmap, metrics.scan_rx_frame_adv_addr);
-    if(previous_timestamp == NULL) {
-      // Add the timestamp to the hashmap
-      // We need to allocate memory as the hashmap takes ownership of the data
-      uint32_t * current_timestamp_ptr = (uint32_t *) malloc(sizeof(uint32_t));
-      *current_timestamp_ptr = current_timestamp;
-      hashmap_put(timestamp_hashmap, metrics.scan_rx_frame_adv_addr, current_timestamp_ptr);
-      metrics.scan_rx_frame_interval = -1;
-    } else {
-      // Compute the frame interval
-      metrics.scan_rx_frame_interval = current_timestamp - *(uint32_t *)previous_timestamp;
+      // Get the buffer
+      copy_buffer(metrics.scan_rx_frame_payload, metrics.scan_rx_frame_size);
+      // Get the Adv Address (first 6 bytes)
+      memcpy(metrics.scan_rx_frame_adv_addr, metrics.scan_rx_frame_payload, 6);
 
-      log(metrics.scan_rx_frame_adv_addr, &metrics.scan_rx_frame_interval, 4);
+      // Initialize the timestamp hashmap if it hasn't been initialized yet
+      if(timestamp_hashmap == NULL) {
+        timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, check_timeout, 6);
+      }
 
-      // Save the new timestamp
-      *(uint32_t *)previous_timestamp = current_timestamp;
-    }
+      uint32_t current_timestamp = get_timestamp_in_us(); 
+      // Get the previous timestamp for this address
+      void * previous_timestamp = hashmap_get(timestamp_hashmap, metrics.scan_rx_frame_adv_addr);
+      if(previous_timestamp == NULL) {
+        // Add the timestamp to the hashmap
+        // We need to allocate memory as the hashmap takes ownership of the data
+        uint32_t * current_timestamp_ptr = (uint32_t *) malloc(sizeof(uint32_t));
+        *current_timestamp_ptr = current_timestamp;
+        hashmap_put(timestamp_hashmap, metrics.scan_rx_frame_adv_addr, current_timestamp_ptr);
+        metrics.scan_rx_frame_interval = -1;
+      } else {
+        // Compute the frame interval
+        metrics.scan_rx_frame_interval = current_timestamp - *(uint32_t *)previous_timestamp;
 
-    for(int i = 0; i < scan_callbacks_size; i++) {
-      scan_callbacks[i](&metrics);
+        log(metrics.scan_rx_frame_adv_addr, &metrics.scan_rx_frame_interval, 4);
+
+        // Save the new timestamp
+        *(uint32_t *)previous_timestamp = current_timestamp;
+      }
+
+      //for(int i = 0; i < scan_callbacks_size; i++) {
+      //  scan_callbacks[i](&metrics);
+      //}
     }
 
     mutex = 0;

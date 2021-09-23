@@ -4,7 +4,6 @@
 #include "log.h"
 #include "hashmap.h"
 #include "malloc.h"
-#include "time.h"
 
 #define MAX_ADV_DELAY 10000
 #define WINDOW_SIZE 36
@@ -17,29 +16,29 @@ typedef struct circ_buffer {
   bool is_init;
 } circ_buffer_t;
 
-typedef struct mitm_data {
+typedef struct gattacker_data {
   circ_buffer_t window;
   uint8_t last_channel;
   uint32_t threshold;
   bool under_attack;
   uint32_t last_timestamp;
-} mitm_data_t;
+} gattacker_data_t;
 
 static hashmap_t * hashmap = NULL;
 
-void SCAN_CALLBACK(mitm)(metrics_t * metrics) {
+void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
   // Check if a packet was received
   if(metrics->scan_rx_done && metrics->scan_rx_frame_pdu_type == 0) {
     if(hashmap == NULL) {
-      hashmap = hashmap_initialize(HASHMAP_SIZE, NULL);
+      hashmap = hashmap_initialize(HASHMAP_SIZE, NULL, 6);
     }
 
-    // Get this device's data for detecting a mitm attack
-    mitm_data_t * data;
+    // Get this device's data for detecting a gattacker attack
+    gattacker_data_t * data;
     void * ret = hashmap_get(hashmap, metrics->scan_rx_frame_adv_addr);
     if(ret == NULL) {
       // Add an entry if it wasn't found
-      data = (mitm_data_t *) malloc(sizeof(mitm_data_t));
+      data = (gattacker_data_t *) malloc(sizeof(gattacker_data_t));
       data->window.cur = 0;
       data->window.is_init = 0;
       data->last_channel = 0;
@@ -52,11 +51,11 @@ void SCAN_CALLBACK(mitm)(metrics_t * metrics) {
         return;
       }
     } else {
-      data = (mitm_data_t*)ret; 
+      data = (gattacker_data_t*)ret; 
     }
 
     // Store the last timestamp for timeout purposes
-    data->last_timestamp = timestamp_in_us();
+    data->last_timestamp = get_timestamp_in_us();
 
     // Exclude first value
     if(metrics->scan_rx_frame_interval == -1) {

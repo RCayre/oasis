@@ -147,7 +147,7 @@ if err != 0:
     print("Error while generating dfu.zip")
     exit(1)
 print("Flashing device ...")
-device = "/dev/ttyACM1"
+device = "/dev/ttyACM0"
 err = run("nrfutil dfu usb-serial -pkg build/dfu.zip -p " + device + " -b 115200")
 if err != 0:
     print("Error while flashing the device", device)

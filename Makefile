@@ -48,7 +48,7 @@ ifeq ($(PLATFORM),BOARD_NRF52840) # Raspberry Pi 3+/4
 	CONF_DIR := boards/nrf52840
 endif
 
-APPS = btlejuice 
+APPS = btlejuice
 APPS_SRC = $(foreach app,$(APPS), $(APP_DIR)/$(app)/app.c)
 APPS_OBJ = $(foreach app,$(APPS), $(BUILD_DIR)/$(APP_DIR)/$(app)/app.o)
 APPS_BUILD = $(foreach app,$(APPS), $(BUILD_DIR)/$(APP_DIR)/$(app))

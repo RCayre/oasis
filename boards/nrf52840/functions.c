@@ -9,7 +9,8 @@
 void * _memcpy(void * dst, void * src, uint32_t size);
 void * bt_hci_event_create(uint8_t opcode, uint8_t size);
 void * net_buf_simple_add(void * evt, uint8_t size);
-void bt_recv_prio(void *evt);
+void bt_recv(void *evt);
+void hci_driver_send(void *evt);
 bool radio_crc_is_valid();
 int32_t radio_rssi_get();
 uint32_t sys_clock_tick_get();
@@ -19,6 +20,7 @@ uint8_t radio_is_done();
  * Registers
  */
 uint32_t * rx_buffer_ptr = (uint32_t *)0x40001504;
+uint32_t * frequency_ptr = (uint32_t *)0x40001508;
 
 uint32_t * timer2_mode = (uint32_t *)0x4000a504;
 uint32_t * timer2_width = (uint32_t *)0x4000a508;
@@ -46,10 +48,13 @@ void timer2_init() {
 
 void on_init() {
   memcpy(RAM_DATA_START, DATA_START, (uint32_t)CODE_START - (uint32_t)DATA_START); 
-  timer2_init();
 }
-
+int timer_started = 0;
 void on_scan() {
+  if (!timer_started) {
+  timer_started = 1;
+  timer2_init();
+  }
   process_scan_rx_header();
   process_scan_rx();
 }
@@ -72,7 +77,7 @@ void send_hci(uint8_t opcode, void * content, uint32_t size) {
   void * evt = bt_hci_event_create(opcode, size);
   uint8_t * buf = net_buf_simple_add(evt+8, size);
   memcpy(buf, content, size);
-  bt_recv_prio(evt);
+  bt_recv(evt);
 }
 
 uint32_t get_timestamp_in_us() {
@@ -96,7 +101,14 @@ void copy_own_adv_addr(uint8_t * dst) {
 }
 
 uint8_t get_channel() {
-  return 0;
+  uint8_t channel = 0;
+  uint32_t frequency = *(uint32_t*)frequency_ptr;
+  if (frequency == 2) channel = 37;
+  else if (frequency == 26) channel = 38;
+  else if (frequency == 80) channel = 39;
+  else if (frequency < 24) channel = (frequency/2) - 2;
+  else channel = (frequency/2) - 3; 
+  return channel;
 }
 
 void copy_buffer(uint8_t * dst, uint8_t size) {

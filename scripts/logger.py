@@ -30,7 +30,7 @@ class BTComm:
                 if header == 1:
                     addr = ":".join(["{:02x}".format(i) for i in eventPayload[2:8]][::-1])
                 
-                data = " ".join(["{:02x}".format(i) for i in eventPayload[8:][::-1]])
+                data = " ".join(["{:02x}".format(i) for i in eventPayload[8:]])
                 return (header, addr, data)
             elif eventPayload[0:2] == b"\x1b\x03":
                 # Handle stack trace

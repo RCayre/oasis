@@ -70,15 +70,17 @@ void process_scan_rx() {
         // Compute the frame interval
         metrics.scan_rx_frame_interval = current_timestamp - *(uint32_t *)previous_timestamp;
 
-        log(metrics.scan_rx_frame_adv_addr, &metrics.scan_rx_frame_interval, 4);
-
         // Save the new timestamp
         *(uint32_t *)previous_timestamp = current_timestamp;
       }
-
-      //for(int i = 0; i < scan_callbacks_size; i++) {
-      //  scan_callbacks[i](&metrics);
-      //}
+      uint32_t chan = get_channel();
+      
+      
+      for(int i = 0; i < scan_callbacks_size; i++) {
+        scan_callbacks[i](&metrics);
+      }
+      
+      
     }
 
     mutex = 0;

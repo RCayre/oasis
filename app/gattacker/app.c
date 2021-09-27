@@ -102,7 +102,6 @@ void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
       /*********************************************************/
       /*        Compute a threshold for the adv interval       */
       /*********************************************************/
-
       if(!data->threshold || min > data->threshold + MAX_ADV_DELAY) {
         data->threshold = min - MAX_ADV_DELAY;
       }
@@ -110,7 +109,7 @@ void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
       /*********************************************************/
       /*                 Detect a MITM attack                  */
       /*********************************************************/
-
+      
       if(min < data->threshold) {
         // If we go below the threshold
         data->under_attack = 1;

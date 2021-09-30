@@ -2,15 +2,15 @@ from pwnlib.asm import asm
 import sys, os, subprocess
 import re
 
-if len(sys.argv) != 5:
-    print("Usage: "+sys.argv[0]+" <elf file> <symbols file> <rom file> <build dir>")
+if len(sys.argv) < 5:
+    print("Usage: "+sys.argv[0]+" <elf file> <symbols file> <rom file> <build dir> <dependencies>")
     exit(1)
-    
+
 elfFile = sys.argv[1]
 symFile = sys.argv[2]
 romFile = sys.argv[3]
 buildDir = sys.argv[4]
-
+dependencies = ["COMMON"]+sys.argv[5:]
 
 if not os.path.isfile(elfFile):
     print("ELF file does not exist ")
@@ -23,9 +23,9 @@ if not os.path.isfile(symFile):
 if not os.path.isfile(romFile):
     print("ROM file does not exist ")
     exit(3)
-        
+
 sections = {
-"T": ".text", 
+"T": ".text",
 "t": ".text",
 "D": ".data",
 "d": ".data",
@@ -91,18 +91,17 @@ with open(romFile,"r") as f:
     rompatches = f.readlines()
     for rompatch in rompatches:
         rompatch = rompatch.replace("\n","").split(":")
-        if len(rompatch) == 5:
-            section,name,baseAddress,target,instr = rompatch
-            baseAddress = "0x{:02x}".format(int(baseAddress,16))
-            if name+"_hook" in functions:
-                instruction = "bl "+functions[name+"_hook"]
-                instruction = asm(instruction,arch="thumb",vma=int(baseAddress,16))
-                output2 += section+","+baseAddress+","+instruction.hex()+","+name+"\n"
+        if len(rompatch) == 6:
+            tag,section,name,baseAddress,target,instr = rompatch
+            if tag in dependencies:
+                baseAddress = "0x{:02x}".format(int(baseAddress,16))
+                if name+"_hook" in functions:
+                    instruction = "bl "+functions[name+"_hook"]
+                    instruction = asm(instruction,arch="thumb",vma=int(baseAddress,16))
+                    output2 += section+","+baseAddress+","+instruction.hex()+","+name+"\n"
 
 output = output + output2
 
 if output != "":
     with open(buildDir+"/patches.csv","w") as f:
         f.write(output)
-
-

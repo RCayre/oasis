@@ -12,7 +12,7 @@ if not os.path.isfile(sys.argv[1]):
 if not sys.argv[2] in ("ADB_SERIAL","ADB","HCI"):
     print("Core type not found !")
     exit(3)
-with open(sys.argv[1],"r") as f: 
+with open(sys.argv[1],"r") as f:
     patches = [line.replace("\n","").split(",") for line in f.readlines()]
 
     if sys.argv[2] == "ADB_SERIAL":
@@ -52,4 +52,3 @@ with open(sys.argv[1],"r") as f:
     # shutdown connection
     internalblue.shutdown()
     internalblue.logger.info("Goodbye")
-

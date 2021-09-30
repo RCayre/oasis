@@ -47,21 +47,18 @@ void timer2_init() {
  */
 
 void on_init() {
-  memcpy(RAM_DATA_START, DATA_START, (uint32_t)CODE_START - (uint32_t)DATA_START); 
-}
-int timer_started = 0;
-void on_scan() {
-  if (!timer_started) {
-  timer_started = 1;
+  memcpy(RAM_DATA_START, DATA_START, (uint32_t)CODE_START - (uint32_t)DATA_START);
   timer2_init();
-  }
+}
+
+void on_scan() {
   process_scan_rx_header();
   process_scan_rx();
 }
 
 void on_conn() {
-//  process_conn_rx_header();
-//  process_conn_rx(); 
+  process_conn_rx_header();
+  process_conn_rx();
 }
 
 
@@ -107,7 +104,7 @@ uint8_t get_channel() {
   else if (frequency == 26) channel = 38;
   else if (frequency == 80) channel = 39;
   else if (frequency < 24) channel = (frequency/2) - 2;
-  else channel = (frequency/2) - 3; 
+  else channel = (frequency/2) - 3;
   return channel;
 }
 

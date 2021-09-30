@@ -74,11 +74,12 @@ void process_scan_rx() {
         *(uint32_t *)previous_timestamp = current_timestamp;
       }
       uint32_t chan = get_channel();
-      
-      
+      log(metrics.scan_rx_frame_adv_addr, &metrics.scan_rx_frame_interval, 4);
+      /*
       for(int i = 0; i < scan_callbacks_size; i++) {
         scan_callbacks[i](&metrics);
       }
+      */
       
       
     }

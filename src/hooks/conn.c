@@ -19,10 +19,11 @@ static hashmap_t * timestamp_hashmap = NULL;
 static uint32_t current_timestamp;
 
 void process_conn_rx_header() {
-  current_timestamp = get_timestamp_in_us(); 
+  current_timestamp = get_timestamp_in_us();
 }
 
 void process_conn_rx() {
+
   if(timestamp_hashmap == NULL) {
     timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 4);
   }
@@ -58,13 +59,11 @@ void process_conn_rx() {
       // Compute the frame interval
       metrics.conn_rx_frame_interval = current_timestamp - *(uint32_t *)previous_timestamp;
 
-      log(NULL, &metrics.conn_rx_frame_interval, 4);
-
       // Save the new timestamp
       *(uint32_t *)previous_timestamp = current_timestamp;
     }
   }
-
+	log(NULL,&metrics.conn_rx_frame_interval,4);
   //for(int i = 0; i < conn_callbacks_size; i++) {
   //  conn_callbacks[i](&metrics);
   //}
@@ -75,5 +74,5 @@ void process_conn_delete() {
   copy_access_addr(access_addr);
 
   // Cleanup this connection
-  hashmap_delete(timestamp_hashmap, access_addr); 
+  hashmap_delete(timestamp_hashmap, access_addr);
 }

@@ -14,7 +14,7 @@ uint8_t get_channel();
 void copy_buffer(uint8_t * dst, uint8_t size);
 bool is_slave();
 void copy_channel_map(uint8_t * dst);
-uint8_t get_hop_interval();
+uint16_t get_hop_interval();
 uint32_t get_crc_init();
 void copy_access_addr(uint8_t * dst);
 bool is_crc_good();

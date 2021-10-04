@@ -4,8 +4,10 @@
 void process_scan_rx_header();
 void process_scan_rx();
 void process_scan_delete();
+void process_conn_init();
 void process_conn_rx_header();
 void process_conn_rx();
+void process_conn_tx();
 void process_conn_delete();
 
 #endif

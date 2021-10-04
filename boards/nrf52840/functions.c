@@ -6,6 +6,10 @@
 #define DATA_START (void*)0x1e350
 #define CODE_START (void*)0x20000
 
+#define NOT_CONNECTED 0
+#define CONNECTED_MASTER 1
+#define CONNECTED_SLAVE 2
+
 void * _memcpy(void * dst, void * src, uint32_t size);
 void * bt_hci_event_create(uint8_t opcode, uint8_t size);
 void * net_buf_simple_add(void * evt, uint8_t size);
@@ -21,6 +25,7 @@ uint8_t radio_is_done();
  */
 uint32_t * rx_buffer_ptr = (uint32_t *)0x40001504;
 uint32_t * frequency_ptr = (uint32_t *)0x40001508;
+uint32_t * radio_state = (uint32_t *)0x40001550;
 
 uint32_t * timer2_mode = (uint32_t *)0x4000a504;
 uint32_t * timer2_width = (uint32_t *)0x4000a508;
@@ -51,12 +56,43 @@ void on_init() {
   timer2_init();
 }
 
+int connected = NOT_CONNECTED;
+uint32_t access_address = 0x00000000;
+uint32_t crc_init = 0x00000000;
+uint16_t hop_interval = 0x0000;
+uint8_t channel_map[5];
+
+void on_setup_master_conn(void *rx, void *ftr, void *lll) {
+	connected = CONNECTED_MASTER;
+	// Copy access address
+	memcpy(&access_address, lll+4, 4);
+	// Copy CRC Init
+	memcpy(&crc_init, lll+8, 4);
+	// Copy Hop Interval
+	memcpy(&hop_interval, lll+14, 2);
+	// Copy channel map
+	memcpy(&channel_map, lll+24, 5);
+
+	process_conn_init();
+}
+
+void on_cleanup_master_conn() {
+	if (connected != NOT_CONNECTED) {
+		process_conn_delete();
+		connected = NOT_CONNECTED;
+	}
+}
+
 void on_scan() {
   process_scan_rx_header();
   process_scan_rx();
 }
 
-void on_conn() {
+void on_conn_tx(uint32_t *cb) {
+		process_conn_tx();
+}
+
+void on_conn_rx() {
   process_conn_rx_header();
   process_conn_rx();
 }
@@ -91,7 +127,7 @@ void copy_header(uint8_t * dst) {
 }
 
 bool is_rx_done() {
-  return (radio_is_done() & 0xFF) != 0 && is_crc_good();
+  return (radio_is_done() & 0xFF) != 0;
 }
 
 void copy_own_adv_addr(uint8_t * dst) {
@@ -113,21 +149,23 @@ void copy_buffer(uint8_t * dst, uint8_t size) {
 }
 
 bool is_slave() {
-  return 0;
+  return connected == CONNECTED_SLAVE;
 }
 
 void copy_channel_map(uint8_t * dst) {
+	memcpy(dst,&channel_map, 5);
 }
 
-uint8_t get_hop_interval() {
-  return 0;
+uint16_t get_hop_interval() {
+  return hop_interval;
 }
 
 uint32_t get_crc_init() {
-  return 0;
+  return crc_init;
 }
 
 void copy_access_addr(uint8_t * dst) {
+	memcpy(dst, &access_address, 4);
 }
 
 bool is_crc_good() {

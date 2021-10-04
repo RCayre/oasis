@@ -33,7 +33,6 @@ with open(patchFile,"r") as f:
 		if len(line) == 6:
 			tag, section, name, address, target, instr = line
 			if tag in dependencies:
-				print(name)
 				output += TEMPLATE % (name+"_hook",target, instr)
 	with open(buildDir+"/hooks.c","w") as fw:
 		fw.write(output)

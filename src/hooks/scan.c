@@ -30,7 +30,7 @@ void process_scan_rx_header() {
 void process_scan_rx() {
   metrics.scan_rx_done = is_rx_done();
 
-  if(metrics.scan_rx_done && mutex == 0) { 
+  if(metrics.scan_rx_done && mutex == 0) {
     mutex = 1;
 
     copy_header(metrics.scan_rx_frame_header);
@@ -56,7 +56,7 @@ void process_scan_rx() {
         timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, check_timeout, 6);
       }
 
-      uint32_t current_timestamp = get_timestamp_in_us(); 
+      uint32_t current_timestamp = get_timestamp_in_us();
       // Get the previous timestamp for this address
       void * previous_timestamp = hashmap_get(timestamp_hashmap, metrics.scan_rx_frame_adv_addr);
       if(previous_timestamp == NULL) {
@@ -73,15 +73,15 @@ void process_scan_rx() {
         // Save the new timestamp
         *(uint32_t *)previous_timestamp = current_timestamp;
       }
-      uint32_t chan = get_channel();
-      log(metrics.scan_rx_frame_adv_addr, &metrics.scan_rx_frame_interval, 4);
-      /*
+      //log(metrics.scan_rx_frame_adv_addr, &metrics.scan_rx_frame_interval, 4);
+
+
       for(int i = 0; i < scan_callbacks_size; i++) {
         scan_callbacks[i](&metrics);
       }
-      */
-      
-      
+
+
+
     }
 
     mutex = 0;

@@ -31,10 +31,17 @@ typedef struct metrics {
   bool conn_rx_crc_good;
   uint8_t conn_rx_frame_header[2];
   uint8_t conn_rx_frame_size;
-  uint8_t conn_rx_frame_payload[40];
+  uint8_t conn_rx_frame_payload[43];
   uint8_t slave_latency;
-  uint8_t hop_interval;
+  uint16_t hop_interval;
   bool is_slave;
+
+	uint32_t rx_counter;
+	uint32_t tx_counter;
+	uint32_t last_counter_interval;
+	uint32_t consecutive_missed_packets;
+
+
 } metrics_t;
 
 #endif

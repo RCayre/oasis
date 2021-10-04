@@ -11,19 +11,42 @@
 
 extern metrics_t metrics;
 
-extern uint8_t conn_callbacks_size;
-extern callback_t conn_callbacks[];
+extern uint8_t conn_rx_callbacks_size;
+extern uint8_t conn_tx_callbacks_size;
+extern callback_t conn_rx_callbacks[];
+extern callback_t conn_tx_callbacks[];
 
 static hashmap_t * timestamp_hashmap = NULL;
 
 static uint32_t current_timestamp;
+
+void process_conn_init() {
+	metrics.rx_counter = 0;
+	metrics.tx_counter = 0;
+	metrics.consecutive_missed_packets = 0;
+	metrics.last_counter_interval = 0;
+}
+
+void process_conn_tx() {
+	metrics.tx_counter+=1;
+	if (metrics.last_counter_interval != metrics.tx_counter-metrics.rx_counter) {
+		metrics.consecutive_missed_packets++;
+	}
+	else {
+		metrics.consecutive_missed_packets=0;
+	}
+	metrics.last_counter_interval = metrics.tx_counter-metrics.rx_counter;
+
+	for(int i = 0; i < conn_tx_callbacks_size; i++) {
+    conn_tx_callbacks[i](&metrics);
+  }
+}
 
 void process_conn_rx_header() {
   current_timestamp = get_timestamp_in_us();
 }
 
 void process_conn_rx() {
-
   if(timestamp_hashmap == NULL) {
     timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 4);
   }
@@ -63,16 +86,15 @@ void process_conn_rx() {
       *(uint32_t *)previous_timestamp = current_timestamp;
     }
   }
-	log(NULL,&metrics.conn_rx_frame_interval,4);
-  //for(int i = 0; i < conn_callbacks_size; i++) {
-  //  conn_callbacks[i](&metrics);
-  //}
+	metrics.rx_counter++;
+	for(int i = 0; i < conn_rx_callbacks_size; i++) {
+    conn_rx_callbacks[i](&metrics);
+  }
 }
 
 void process_conn_delete() {
   uint8_t access_addr[4];
   copy_access_addr(access_addr);
-
   // Cleanup this connection
   hashmap_delete(timestamp_hashmap, access_addr);
 }

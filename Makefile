@@ -48,7 +48,7 @@ ifeq ($(PLATFORM),BOARD_NRF52840) # NRF52840 with (Zephyr hci_usb)
 	CONF_DIR := boards/nrf52840
 endif
 
-APPS = gattacker btlejack
+APPS = btlejack
 APPS_SRC = $(foreach app,$(APPS), $(APP_DIR)/$(app)/app.c)
 APPS_OBJ = $(foreach app,$(APPS), $(BUILD_DIR)/$(APP_DIR)/$(app)/app.o)
 APPS_BUILD = $(foreach app,$(APPS), $(BUILD_DIR)/$(APP_DIR)/$(app))

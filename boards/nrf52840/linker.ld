@@ -1,22 +1,22 @@
 MEMORY
 {
   /* flash data between 0x1e350 and flash */
-	flash (rwx) : ORIGIN = 0x20000, LENGTH = 0x1000
+	flash (rwx) : ORIGIN = 0x20000, LENGTH = 0x2000
   ram (rwx) : ORIGIN = 0x20006000, LENGTH = 0x1500
 }
 
 SECTIONS {
 	.text : {
-	} > flash 
+	} > flash
 
   .rodata : {
-  } > flash 
+  } > flash
 
 	.data : {
-	} > ram 
+	} > ram
 
 	.bss : {
-	} > ram 
+	} > ram
 
   .bss.memory : {
   } > ram

@@ -19,6 +19,7 @@ bool radio_crc_is_valid();
 int32_t radio_rssi_get();
 uint32_t sys_clock_tick_get();
 uint8_t radio_is_done();
+uint8_t ll_addr_set(uint8_t addr_type, uint8_t *bdaddr);
 
 /**
  * Registers
@@ -56,6 +57,11 @@ void on_init() {
   timer2_init();
 }
 
+void on_main() {
+	uint8_t addr[] = {0x66,0x55,0x44,0x33,0x22,0x11};
+	ll_addr_set(0,addr);
+}
+
 int connected = NOT_CONNECTED;
 uint32_t access_address = 0x00000000;
 uint32_t crc_init = 0x00000000;
@@ -63,7 +69,22 @@ uint16_t hop_interval = 0x0000;
 uint8_t channel_map[5];
 
 void on_setup_master_conn(void *rx, void *ftr, void *lll) {
+
 	connected = CONNECTED_MASTER;
+	// Copy access address
+	memcpy(&access_address, lll+4, 4);
+	// Copy CRC Init
+	memcpy(&crc_init, lll+8, 4);
+	// Copy Hop Interval
+	memcpy(&hop_interval, lll+14, 2);
+	// Copy channel map
+	memcpy(&channel_map, lll+24, 5);
+
+	process_conn_init();
+}
+
+void on_setup_slave_conn(void *rx, void *ftr, void *lll) {
+	connected = CONNECTED_SLAVE;
 	// Copy access address
 	memcpy(&access_address, lll+4, 4);
 	// Copy CRC Init
@@ -93,8 +114,8 @@ void on_conn_tx(uint32_t *cb) {
 }
 
 void on_conn_rx() {
-  process_conn_rx_header();
-  process_conn_rx();
+	process_conn_rx_header();
+  process_conn_rx(1);
 }
 
 

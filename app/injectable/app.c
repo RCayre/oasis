@@ -22,9 +22,9 @@ typedef struct injectable_data {
 
 static hashmap_t * hashmap = NULL;
 
-void CONN_CALLBACK(injectable)(metrics_t * metrics) {
+void CONN_RX_CALLBACK(injectable)(metrics_t * metrics) {
   // This detection is intended to be used as a slave
-  if(!metrics.is_slave) {
+  if(!metrics->is_slave) {
     return;
   }
 
@@ -47,11 +47,11 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
       return;
     }
   } else {
-    data = (injectable_data_t*)ret; 
+    data = (injectable_data_t*)ret;
   }
 
   // Exclude first value
-  if(metrics->conn_rx_frame_interval == -1) {
+  if(metrics->conn_rx_frame_interval == -1 || metrics->consecutive_missed_packets != 0) {
     return;
   }
 
@@ -62,7 +62,7 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
 
     // If the window has been entirely filled
     if(data->window.cur == WINDOW_SIZE - 1) {
-      data->window.skipped_windows += 1; 
+      data->window.skipped_windows += 1;
     }
 
     data->window.cur += 1;
@@ -85,4 +85,3 @@ void CONN_CALLBACK(injectable)(metrics_t * metrics) {
     }
   }
 }
-

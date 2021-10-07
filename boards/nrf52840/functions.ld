@@ -6,3 +6,4 @@ radio_crc_is_valid = 0x1568c;
 radio_rssi_get = 0x15a10;
 sys_clock_tick_get = 0x1a824;
 radio_is_done = 0x1564c;
+ll_addr_set = 0x74e8;

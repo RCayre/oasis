@@ -46,7 +46,7 @@ void process_conn_rx_header() {
   current_timestamp = get_timestamp_in_us();
 }
 
-void process_conn_rx() {
+void process_conn_rx(int adapt_timestamp) {
   if(timestamp_hashmap == NULL) {
     timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 4);
   }
@@ -65,6 +65,10 @@ void process_conn_rx() {
   // Check if the CRC is good
   metrics.conn_rx_crc_good = is_crc_good();
 
+	// Correct the timestamp value if needed
+	if (adapt_timestamp) {
+		current_timestamp = current_timestamp - (metrics.conn_rx_frame_size+4+2+3)*8;
+	}
   // Get the previous timestamp for this address
   void * previous_timestamp = hashmap_get(timestamp_hashmap, metrics.conn_access_addr);
   if(previous_timestamp == NULL) {
@@ -86,6 +90,7 @@ void process_conn_rx() {
       *(uint32_t *)previous_timestamp = current_timestamp;
     }
   }
+
 	metrics.rx_counter++;
 	for(int i = 0; i < conn_rx_callbacks_size; i++) {
     conn_rx_callbacks[i](&metrics);

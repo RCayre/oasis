@@ -20,7 +20,7 @@ void on_init() {
 
 void * memcpy(void * dst, void * src, uint32_t size) {
 	for (int i=0;i<size;i++) {
-		dst[i] = src[i];
+		((uint8_t*)dst)[i] = ((uint8_t*)src)[i];
 	}
 }
 

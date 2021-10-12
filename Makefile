@@ -19,35 +19,41 @@ ifeq ($(PLATFORM),BOARD_CYW20735) # CYW20735 Development board
 	CONF_DIR := boards/cyw20735
 	CORE_TYPE := HCI
 	GENERATE_CONF := cp
+	HEAP_SIZE := 0x1000
 endif
 
 ifeq ($(PLATFORM),BOARD_BCM43430A1) # Raspberry Pi 3
 	CONF_DIR := boards/bcm43430a1
 	CORE_TYPE := HCI
 	GENERATE_CONF := cp
+	HEAP_SIZE := 0x1000
 endif
 
 ifeq ($(PLATFORM),BOARD_BCM4335C0) # Nexus 5
 	CONF_DIR := boards/bcm4335c0
 	CORE_TYPE := ADB
 	GENERATE_CONF := cp
+	HEAP_SIZE := 0x1000
 endif
 
 ifeq ($(PLATFORM),BOARD_BCM4345C0) # Raspberry Pi 3+/4
 	CONF_DIR := boards/bcm4345c0
 	CORE_TYPE := HCI
 	GENERATE_CONF := cp
+	HEAP_SIZE := 0x1000
 endif
 
 ifeq ($(PLATFORM),BOARD_NRF52840) # NRF52840 with (Zephyr hci_usb)
 	CONF_DIR := boards/nrf52840
 	GENERATE_CONF := cp
+	HEAP_SIZE := 0x1000
 endif
 
 
 ifeq ($(PLATFORM),BOARD_NRF51) # NRF52840 with SoftDevice
 	CONF_DIR := boards/nrf51
 	GENERATE_CONF := python3 $(CONF_DIR)/generate_conf.py
+	HEAP_SIZE := 0x800
 endif
 
 
@@ -86,7 +92,7 @@ $(BUILD_DIR)/hooks.c: $(BUILD_DIR)/patch.conf
 	python3 $(SCRIPTS_DIR)/generate_hooks.py $(BUILD_DIR) $(CONF_DIR)/patch.conf $(DEPENDENCIES)
 
 $(BUILD_DIR)/out.elf: $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CONF_DIR)/functions.c
-	arm-none-eabi-gcc -D$(PLATFORM) $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CFLAGS) $(CONF_DIR)/functions.c -T $(CONF_DIR)/linker.ld $(CONF_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR)
+	arm-none-eabi-gcc -DHEAP_SIZE=$(HEAP_SIZE) -D$(PLATFORM) $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CFLAGS) $(CONF_DIR)/functions.c -T $(CONF_DIR)/linker.ld $(CONF_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR)
 
 $(BUILD_DIR)/symbols.sym: $(BUILD_DIR)/out.elf
 	arm-none-eabi-nm -S -a $(BUILD_DIR)/out.elf | sort > $(BUILD_DIR)/symbols.sym

@@ -131,6 +131,13 @@ with open(romFile,"r") as f:
                     instruction = "bl "+functions[name+"_hook"]
                     instruction = asm(instruction,arch="thumb",vma=int(baseAddress,16))
                     output2 += section+","+baseAddress+","+instruction.hex()+","+name+"\n"
+        if len(rompatch) == 5:
+            tag,section,name,baseAddress,instr = rompatch
+            if len(instr) > 2 and instr[:2] == "0x":
+                output2 += section+","+baseAddress+","+"{:08x}".format(int(instr,16))+","+name+"\n"
+            else:
+                instruction = asm(instr,arch="thumb",vma=int(baseAddress,16))
+                output2 += section+","+baseAddress+","+instruction.hex()+","+name+"\n"
 
 output = output + output2
 

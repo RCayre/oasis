@@ -2,16 +2,21 @@
 #include "hooks.h"
 #include "log.h"
 
-#define RAM_DATA_START (void*)0x20002A80
-#define DATA_START (void*)0x23048
-#define CODE_START (void*)0x24048
+//#define RAM_DATA_START (void*)0x20002A80
+//#define DATA_START (void*)0x23048
+//#define CODE_START (void*)&BASE_FLASH
 
+extern uint32_t CODE_START[];
+extern uint32_t RAM_START[];
+extern uint32_t RAM_LENGTH[];
 /**
  * Hooks
  */
-
+static int toto = 0x41424344;
 void on_init() {
-  memcpy(RAM_DATA_START, DATA_START, (uint32_t)CODE_START - (uint32_t)DATA_START);
+  uint32_t DATA_START = (uint32_t)CODE_START - (uint32_t)RAM_LENGTH;
+  memcpy((void*)RAM_START, (void*)DATA_START,RAM_LENGTH);
+  toto = CODE_START - RAM_LENGTH;
 }
 
 /**

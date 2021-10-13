@@ -102,31 +102,21 @@ def run(command):
 
 
 
-if len(sys.argv) != 2:
-    print("Usage: "+sys.argv[0]+" <patch file>")
+if len(sys.argv) != 6:
+    print("Usage: "+sys.argv[0]+" <patch file> <code start> <code length> <ram start> <ram length>")
     exit(1)
 
 patchFile = sys.argv[1]
 inputHexFile = get_file_dir() + "/firmware.hex"
-linkerFile = get_file_dir() + "/linker.ld"
 outputHexFile = "build/out.hex"
 
 flashingMethod = "NRFJPROG"
 
 # Get the address of the ram section
-ramStart = None
-codeStart = None
-with open(linkerFile, "r") as f:
-    lines = f.readlines()
-    for l in lines:
-        if "ram (rwx)" in l:
-            l = l.strip()
-            address = l.split("ORIGIN = ")[1].split(",")[0]
-            ramStart = int(address, 16)
-        if "flash (rwx" in l:
-            l = l.strip()
-            address = l.split("ORIGIN = ")[1].split(",")[0]
-            codeStart = int(address, 16)
+codeStart = int(sys.argv[2],16)
+codeLength = int(sys.argv[3],16)
+ramStart = int(sys.argv[4],16)
+ramLength = int(sys.argv[5],16)
 
 # Open inputHexFile
 so, buffer, cs, ip = hexToInternal(inputHexFile)
@@ -138,7 +128,7 @@ try:
             patchType, patchAddress, patchContent, name = patch
             patchAddress = int(patchAddress,16)
             if patchAddress >= ramStart:
-                dataAddress = patchAddress - ramStart + 0x23048
+                dataAddress = patchAddress - ramStart + (codeStart - ramLength)
                 print("[DATA] Writing " + name + " at " + hex(dataAddress) + "."+"("+str(len(bytes.fromhex(patchContent)))+")")
                 if dataAddress + len(bytes.fromhex(patchContent)) >= codeStart:
                     print("Data section overwrites the code section by", dataAddress + len(bytes.fromhex(patchContent)) - codeStart, "bytes")

@@ -28,7 +28,7 @@ ifeq ($(PLATFORM),BOARD_BCM43430A1) # Raspberry Pi 3
 	CORE_TYPE := HCI
 	GENERATE_CONF := cp
 	HEAP_SIZE := 0x1000
-	ARCH = armv7-m
+	ARCH := armv7-m
 endif
 
 ifeq ($(PLATFORM),BOARD_BCM4335C0) # Nexus 5
@@ -36,7 +36,7 @@ ifeq ($(PLATFORM),BOARD_BCM4335C0) # Nexus 5
 	CORE_TYPE := ADB
 	GENERATE_CONF := cp
 	HEAP_SIZE := 0x1000
-	ARCH = armv7-m
+	ARCH := armv7-m
 endif
 
 ifeq ($(PLATFORM),BOARD_BCM4345C0) # Raspberry Pi 3+/4
@@ -44,14 +44,14 @@ ifeq ($(PLATFORM),BOARD_BCM4345C0) # Raspberry Pi 3+/4
 	CORE_TYPE := HCI
 	GENERATE_CONF := cp
 	HEAP_SIZE := 0x1000
-	ARCH = armv7-m
+	ARCH := armv7-m
 endif
 
 ifeq ($(PLATFORM),BOARD_NRF52840) # NRF52840 with (Zephyr hci_usb)
 	CONF_DIR := boards/nrf52840
 	GENERATE_CONF := cp
 	HEAP_SIZE := 0x1000
-	ARCH = armv7-m
+	ARCH := armv7-m
 endif
 
 
@@ -59,7 +59,16 @@ ifeq ($(PLATFORM),BOARD_NRF51) # NRF52840 with SoftDevice
 	CONF_DIR := boards/nrf51
 	GENERATE_CONF := python3 $(CONF_DIR)/generate_conf.py
 	HEAP_SIZE := 0x800
-	ARCH = armv6-m
+	ARCH := armv6-m
+
+	CODE_START := 0x24048
+	CODE_LENGTH := 0x2000
+	RAM_START := 0x20002A80
+	RAM_LENGTH := 0x1000
+
+	CFLAGS += -lgcc
+	CFLAGS += -static-libgcc
+
 endif
 
 
@@ -95,21 +104,21 @@ $(BUILD_DIR)/app.c: $(APPS_OBJ)
 	$(GENERATE_CONF) $(CONF_DIR)/patch.conf $(BUILD_DIR)/patch.conf
 
 $(BUILD_DIR)/hooks.c: $(BUILD_DIR)/patch.conf
-	python3 $(SCRIPTS_DIR)/generate_hooks.py $(BUILD_DIR) $(CONF_DIR)/patch.conf $(DEPENDENCIES)
+	python3 $(SCRIPTS_DIR)/generate_hooks.py $(BUILD_DIR) $(BUILD_DIR)/patch.conf $(DEPENDENCIES)
 
 $(BUILD_DIR)/out.elf: $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CONF_DIR)/functions.c
-	arm-none-eabi-gcc -DHEAP_SIZE=$(HEAP_SIZE) -D$(PLATFORM) $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CFLAGS) $(CONF_DIR)/functions.c -T $(CONF_DIR)/linker.ld $(CONF_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR)
+	arm-none-eabi-gcc -DHEAP_SIZE=$(HEAP_SIZE) -D$(PLATFORM) $(BUILD_DIR)/app.c $(APPS_OBJ) $(SRC_DIR)/*.c $(SRC_DIR)/**/*.c $(BUILD_DIR)/hooks.c $(CFLAGS) $(CONF_DIR)/functions.c -T $(CONF_DIR)/linker.ld $(CONF_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR) -Wl,"--defsym=CODE_START=$(CODE_START)" -Wl,"--defsym=CODE_LENGTH=$(CODE_LENGTH)" -Wl,"--defsym=RAM_START=$(RAM_START)"  -Wl,"--defsym=RAM_LENGTH=$(RAM_LENGTH)"
 
 $(BUILD_DIR)/symbols.sym: $(BUILD_DIR)/out.elf
 	arm-none-eabi-nm -S -a $(BUILD_DIR)/out.elf | sort > $(BUILD_DIR)/symbols.sym
 
 $(BUILD_DIR)/patches.csv: $(BUILD_DIR)/symbols.sym
-	python3 $(SCRIPTS_DIR)/generate_patches.py $(BUILD_DIR)/out.elf $(BUILD_DIR)/symbols.sym $(CONF_DIR)/patch.conf $(BUILD_DIR) $(DEPENDENCIES) 2> /dev/null
+	python3 $(SCRIPTS_DIR)/generate_patches.py $(BUILD_DIR)/out.elf $(BUILD_DIR)/symbols.sym $(BUILD_DIR)/patch.conf $(BUILD_DIR) $(DEPENDENCIES) 2> /dev/null
 
 build: clean create_builddir $(BUILD_DIR)/patches.csv
 
 patch: build
-	sudo python3 $(CONF_DIR)/patcher.py $(BUILD_DIR)/patches.csv
+	sudo python3 $(CONF_DIR)/patcher.py $(BUILD_DIR)/patches.csv $(CODE_START) $(CODE_LENGTH) $(RAM_START) $(RAM_LENGTH)
 	rm -f btsnoop.log
 
 clean:

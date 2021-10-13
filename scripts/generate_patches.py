@@ -2,6 +2,15 @@ from pwnlib.asm import asm
 import sys, os, subprocess
 import re
 
+def run(command):
+    if isinstance(command, str):
+        process = subprocess.Popen(command.split(),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    else:
+        process = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    out,err = process.communicate()
+    return out,err
+
+
 if len(sys.argv) < 5:
     print("Usage: "+sys.argv[0]+" <elf file> <symbols file> <rom file> <build dir> <dependencies>")
     exit(1)
@@ -40,6 +49,7 @@ included_sections = ["T", "t", "D", "d", "B", "b", "r"]
 # have the same name. Then we only want to write the section once
 written_sections = []
 
+missed_sections = []
 output = ""
 functions = {}
 with open(symFile,"r") as f:
@@ -57,10 +67,13 @@ with open(symFile,"r") as f:
                 baseAddress, section, name = symbol.replace("\n", "").split(" ")
                 baseAddress = "0x{:02x}".format(int(baseAddress,16))
                 # dump the code for that symbol
-                subprocess.call(["arm-none-eabi-objcopy", elfFile, "--dump-section", sections[section]+"="+buildDir+"/section.bin"])
-                # recover the code for that symbol
-                with open(buildDir+"/section.bin","rb") as content:
-                    output_buffer = "ram,"+baseAddress+","+content.read().hex()+","+name+"\n"
+                out,err = run(["arm-none-eabi-objcopy", elfFile, "--dump-section", sections[section]+"="+buildDir+"/section.bin"])
+                if b"can't dump section" not in err:
+                    # recover the code for that symbol
+                    with open(buildDir+"/section.bin","rb") as content:
+                        output_buffer = "ram,"+baseAddress+","+content.read().hex()+","+name+"\n"
+                else:
+                    missed_sections += [sections[section]]
             else:
                 # Exclude elements with no size
                 if len(symbol.replace("\n", "").split(" ")) != 4:
@@ -75,16 +88,35 @@ with open(symFile,"r") as f:
                     output += "ram,"+baseAddress+","+zeros+","+name+"\n"
                 else:
                     # dump the code for that symbol
-                    subprocess.call(["arm-none-eabi-objcopy", elfFile, "--dump-section", sections[section]+"."+name+"="+buildDir+"/section.bin"])
-                    # recover the code for that symbol
-                    with open(buildDir+"/section.bin","rb") as content:
-                        output_buffer = "ram,"+baseAddress+","+content.read().hex()+","+name+"\n"
+                    out,err = run(["arm-none-eabi-objcopy", elfFile, "--dump-section", sections[section]+"."+name+"="+buildDir+"/section.bin"])
+                    if b"can't dump section" not in err:
+                        # recover the code for that symbol
+                        with open(buildDir+"/section.bin","rb") as content:
+                            output_buffer = "ram,"+baseAddress+","+content.read().hex()+","+name+"\n"
 
-                    if section == "T" or section == "t":
-                        functions[name] = baseAddress
+                        if section == "T" or section == "t":
+                            functions[name] = baseAddress
+
+                    else:
+                        missed_sections += [(sections[section]+"."+name,baseAddress)]
+
             if sections[section]+"."+name not in written_sections:
                 output += output_buffer
                 written_sections += [sections[section]+"."+name]
+
+if len(missed_sections) != 0:
+    if all(list(map(lambda x: ".text.__" in x[0],missed_sections))):
+        baseAddress = min([x[1] for x in missed_sections])
+        print("LibGCC detected ! Dumping text section...")
+        out,err = run(["arm-none-eabi-objcopy", elfFile, "--dump-section", ".text="+buildDir+"/section.bin"])
+        if b"can't dump section" not in err:
+            # recover the code for that symbol
+            with open(buildDir+"/section.bin","rb") as content:
+                output_buffer = "ram,"+baseAddress+","+content.read().hex()+",libgcc\n"
+                output = output_buffer + output
+        else:
+           print("Failure, exiting...")
+           exit(5)
 
 output2 = ""
 with open(romFile,"r") as f:

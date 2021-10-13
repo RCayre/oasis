@@ -21,8 +21,7 @@ void %s() {
 	"bl %s\\n\\t"
 	"pop {r0-r3}\\n\\t"
 	"%s\\n\\t"
-	"pop {lr}\\n\\t"
-	"bx lr\\n\\t");
+	"pop {pc}\\n\\t");
 }
 
 '''

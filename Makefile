@@ -61,10 +61,10 @@ ifeq ($(PLATFORM),BOARD_NRF51) # NRF52840 with SoftDevice
 	HEAP_SIZE := 0x800
 	ARCH := armv6-m
 
-	CODE_START := 0x24048
-	CODE_LENGTH := 0x2000
-	RAM_START := 0x20007000
 	RAM_LENGTH := 0x1000
+	CODE_LENGTH := 0x2000
+	CODE_START :=  $(shell printf "0x%x" $$(($(shell python3 $(CONF_DIR)/firmware_analysis.py FIRMWARE_SIZE) + $(RAM_LENGTH))))
+	RAM_START := $(shell printf "0x%x" $$(($(shell python3 $(CONF_DIR)/firmware_analysis.py MAX_RAM_ADDRESS) - $(RAM_LENGTH))))
 
 	CFLAGS += -lgcc
 	CFLAGS += -static-libgcc

@@ -12,13 +12,17 @@ extern uint32_t RAM_LENGTH[];
 /**
  * Hooks
  */
-static int toto = 0x41424344;
+static int toto = 0;
 void on_init() {
   uint32_t DATA_START = (uint32_t)CODE_START - (uint32_t)RAM_LENGTH;
-  memcpy((void*)RAM_START, (void*)DATA_START,RAM_LENGTH);
-  toto = CODE_START - RAM_LENGTH;
+  memcpy((void*)RAM_START, (void*)DATA_START,(uint32_t)RAM_LENGTH);
+
 }
 
+
+void on_scan() {
+  toto ++;
+}
 /**
  * API implementation
  */

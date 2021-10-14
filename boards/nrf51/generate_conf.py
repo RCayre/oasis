@@ -8,6 +8,9 @@ if len(sys.argv) != 3:
 inputPatchConfigurationFile = sys.argv[1]
 outputPatchConfigurationFile = sys.argv[2]
 
+def switch_endianness(val):
+	return struct.unpack(">I",struct.pack("I",val))[0]
+
 def get_file_dir():
     return "/".join(__file__.split("/")[:-1])
 
@@ -56,6 +59,24 @@ def hexToInternal(input_hex_file):
 inputHexFile = get_file_dir()+"/firmware.hex"
 
 so,out,cs,ip = hexToInternal(inputHexFile)
+
+hooks = ""
+print("Extracting Stack Pointer init value from ISR vector... ",end="")
+stackPointerInitValue = struct.unpack("I",out[0x1b000:0x1b004])[0]
+print(hex(stackPointerInitValue))
+print("Looking for hardcoded SP value...", end="")
+currentValue = None
+i=0
+while currentValue != stackPointerInitValue:
+	currentValue = struct.unpack("I",out[0x1b004+i:0x1b004+i+4])[0]
+	i+=1
+index = 0x1b004+i-1
+print(hex(index))
+hooks += "COMMON:rom:injected_stack_pointer_isr:0x1b000:0x{:08x}".format(switch_endianness(stackPointerInitValue-0x1000))
+hooks += "\nCOMMON:rom:injected_stack_pointer_init:"+"0x{:08x}".format(index)+":0x{:08x}".format(switch_endianness(stackPointerInitValue-0x1000))
+
+print("Adding hooks injected_stack_pointer_isr and injected_stack_pointer_init...")
+
 print("Extracting ResetHandler address from ISR vector...",end="")
 resetHandlerPointer = struct.unpack("I",out[0x1b004:0x1b008])[0] - 1
 print(hex(resetHandlerPointer))
@@ -76,11 +97,11 @@ while i < 150:
 	i += 2
 if instructionToReplace is not None and addressToReplace is not None:
 	print("Generating patch configuration file...")
-	hook = "COMMON:rom:hook_init:""0x{:08x}".format(addressToReplace)+":on_init:"+instructionToReplace
-	print("Adding hook on_init: "+hook)
+	hooks += "\nCOMMON:rom:hook_init:""0x{:08x}".format(addressToReplace)+":on_init:"+instructionToReplace
+	print("Adding hook on_init...")
 
 	with open(inputPatchConfigurationFile,"r") as f:
 		content = f.readlines()
 
 	with open(outputPatchConfigurationFile,"w+") as f:
-		f.write(hook+"\n"+"".join(content))
+		f.write(hooks+"\n"+"".join(content))

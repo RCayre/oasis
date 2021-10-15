@@ -121,7 +121,7 @@ $(BUILD_DIR)/patches.csv: $(BUILD_DIR)/symbols.sym
 
 build: clean create_builddir $(BUILD_DIR)/patches.csv
 
-patch: $(BUILD_DIR)/patches.csv
+patch:
 	sudo python3 $(CONF_DIR)/patcher.py $(BUILD_DIR)/patches.csv $(CODE_START) $(CODE_LENGTH) $(RAM_START) $(RAM_LENGTH)
 	rm -f btsnoop.log
 

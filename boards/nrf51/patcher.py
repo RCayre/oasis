@@ -129,14 +129,25 @@ try:
             patchAddress = int(patchAddress,16)
             if patchAddress >= ramStart:
                 dataAddress = patchAddress - ramStart + (codeStart - ramLength)
-                print("[DATA] Writing " + name + " at " + hex(dataAddress) + "."+"("+str(len(bytes.fromhex(patchContent)))+")")
+                print("[RAM] Writing " + name + " at " + hex(dataAddress) + "...",end="")
                 if dataAddress + len(bytes.fromhex(patchContent)) >= codeStart:
+                    print("KO")
                     print("Data section overwrites the code section by", dataAddress + len(bytes.fromhex(patchContent)) - codeStart, "bytes")
                     exit(1)
-                buffer = write(buffer, so, dataAddress, bytes.fromhex(patchContent))
+                else:
+                    try:
+                        buffer = write(buffer, so, dataAddress, bytes.fromhex(patchContent))
+                        print("OK")
+                    except:
+                        print("KO")
             else:
-                print("[FLASH] Writing " + name + " at " + hex(patchAddress) + ".")
-                buffer = write(buffer, so, patchAddress, bytes.fromhex(patchContent))
+                print("[ROM] Writing " + name + " at " + hex(patchAddress) + "...",end="")
+                try:
+                    buffer = write(buffer, so, patchAddress, bytes.fromhex(patchContent))
+                    print("OK")
+                except:
+                    print("KO")
+            sys.stdout.flush()
 except FileNotFoundError:
     print("Patch file not found, exiting ...")
     exit(3)

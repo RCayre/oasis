@@ -37,13 +37,13 @@ with open(sys.argv[1],"r") as f:
         patchType, patchAddress, patchContent, name = patch
         patchAddress = int(patchAddress,16)
         if patchType == "rom":
-            print("[PATCHROM] Writing "+name+" at "+"0x{:02x}".format(patchAddress)+"...",end="")
+            print("[ROM] Writing "+name+" at "+"0x{:02x}".format(patchAddress)+"...",end="")
             if not internalblue.patchRom(patchAddress,bytes.fromhex(patchContent)):
                 print("KO")
             else:
                 print("OK")
         elif patchType == "ram":
-            print("[WRITERAM] Writing "+name+" at "+"0x{:02x}".format(patchAddress)+"...",end="")
+            print("[RAM] Writing "+name+" at "+"0x{:02x}".format(patchAddress)+"...",end="")
             if not internalblue.writeMem(patchAddress,bytes.fromhex(patchContent)):
                 print("KO")
             else:

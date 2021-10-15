@@ -8,7 +8,7 @@ if len(sys.argv) != 2:
 if not os.path.isfile(sys.argv[1]):
     print("Patch file not found !")
     exit(2)
-with open(sys.argv[1],"r") as f: 
+with open(sys.argv[1],"r") as f:
     patches = [line.replace("\n","").split(",") for line in f.readlines()]
 
     internalblue = HCICore()
@@ -28,13 +28,13 @@ with open(sys.argv[1],"r") as f:
         patchType, patchAddress, patchContent, name = patch
         patchAddress = int(patchAddress,16)
         if patchType == "rom":
-            print("[PATCHROM] Writing "+name+" at "+"0x{:02x}".format(patchAddress)+"...",end="")
+            print("[ROM] Writing "+name+" at "+"0x{:02x}".format(patchAddress)+"...",end="")
             if not internalblue.patchRom(patchAddress,bytes.fromhex(patchContent)):
                 print("KO")
             else:
                 print("OK")
         elif patchType == "ram":
-            print("[WRITERAM] Writing "+name+" at "+"0x{:02x}".format(patchAddress)+"...",end="")
+            print("[RAM] Writing "+name+" at "+"0x{:02x}".format(patchAddress)+"...",end="")
             if not internalblue.writeMem(patchAddress,bytes.fromhex(patchContent)):
                 print("KO")
             else:
@@ -43,4 +43,3 @@ with open(sys.argv[1],"r") as f:
     # shutdown connection
     internalblue.shutdown()
     internalblue.logger.info("Goodbye")
-

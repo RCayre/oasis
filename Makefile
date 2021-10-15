@@ -81,12 +81,16 @@ CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
 CFLAGS += -O0
 
-APPS = gattacker
+ifeq ($(APPS),)
+	APPS = gattacker
+endif
+
 APPS_SRC = $(foreach app,$(APPS), $(APP_DIR)/$(app)/app.c)
 APPS_OBJ = $(foreach app,$(APPS), $(BUILD_DIR)/$(APP_DIR)/$(app)/app.o)
 APPS_BUILD = $(foreach app,$(APPS), $(BUILD_DIR)/$(APP_DIR)/$(app))
 
 DEPENDENCIES = $(shell python3 $(SCRIPTS_DIR)/generate_dependencies.py $(APPS))
+
 
 all : build
 
@@ -117,7 +121,7 @@ $(BUILD_DIR)/patches.csv: $(BUILD_DIR)/symbols.sym
 
 build: clean create_builddir $(BUILD_DIR)/patches.csv
 
-patch: build
+patch: $(BUILD_DIR)/patches.csv
 	sudo python3 $(CONF_DIR)/patcher.py $(BUILD_DIR)/patches.csv $(CODE_START) $(CODE_LENGTH) $(RAM_START) $(RAM_LENGTH)
 	rm -f btsnoop.log
 

@@ -8,7 +8,7 @@ typedef struct block {
   uint8_t free;
   uint8_t pad;
   struct block * next;
-} __attribute__((packed)) block_t;
+} block_t;
 
 // Memory region to be used for allocating data
 __attribute__((section(".bss.memory")))
@@ -23,13 +23,15 @@ block_t * blocks = NULL;
  * @param b     a pointer to the block being split
  * @param size  the size of the first block
  */
+
 void split(block_t * b, uint16_t size) {
   // There needs to be enough room for the block metadata to perform a split
   if(b->size > size + sizeof(block_t)) {
     // Get the new block
-    block_t * new = (block_t *)((uint8_t *)(b+1)+size);
+  block_t * new = (block_t *)((uint8_t *)(b+1)+size);
     // Compute the new block size
     new->size = b->size - size - sizeof(block_t);
+
     new->free = 1;
     // Set the pointers for the list
     block_t * buf = b->next;
@@ -37,6 +39,7 @@ void split(block_t * b, uint16_t size) {
     b->next = new;
 
     b->size = size;
+
   }
 }
 
@@ -67,8 +70,10 @@ uint8_t merge_if_possible(block_t * b, uint16_t size) {
     return 0;
   }
 }
+int weird = 0;
 
 void * malloc(uint16_t size) {
+  while ((size % 4) != 0) {size++;}
   // Initialize the memory if new
   if(blocks == NULL) {
     blocks = (block_t*)memory;
@@ -90,17 +95,19 @@ void * malloc(uint16_t size) {
 
         ret = (void*)(b + 1);
         found = 1;
+
       } else if(b->size > size) {
+
         // If too big, split the block if we can
         split(b, size);
         // Set block as not free
         b->free = 0;
-
         ret = (void*)(b + 1);
         found = 1;
       } else {
+
         // If too small, check if can be merged
-        int is_merged = merge_if_possible(b, size); 
+        int is_merged = merge_if_possible(b, size);
         if(is_merged) {
           // Blocks were merged to accomodate the size
           if(b->size > size) {
@@ -118,19 +125,20 @@ void * malloc(uint16_t size) {
       }
     } else {
       // If not free, go to next block
-      b = b->next; 
+      b = b->next;
     }
   }
-
+  if (((uint32_t)ret % 4) != 0) weird = 1;
   return ret;
 }
 
 void free(void * p) {
   // Loop through the blocks to find the pointer
+
   uint8_t found = 0;
   block_t * b = blocks;
   while(!found && b != NULL) {
-    found = p == (b+1);
+    found = p == (void*)(b+1);
     if(!found) {
       b = b->next;
     }

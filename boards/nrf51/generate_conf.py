@@ -89,16 +89,57 @@ i = 2
 while i < 150:
 	instructions = disasm(out[resetHandlerPointer:resetHandlerPointer+i],arch="thumb",vma=resetHandlerPointer)
 	extractedInstructions = [(instruction[32:].split(" <")[0],instruction.split(":")[0]) for instruction in instructions.split("\n")]
-	if len(extractedInstructions) > 1 and extractedInstructions[-1][0][:2] == "bl" and  extractedInstructions[-2][0][:2] == "bl":
+	if len(extractedInstructions) > 1 and extractedInstructions[-1][0][:3] == "bl " and  extractedInstructions[-2][0][:3] == "bl ":
 		instructionToReplace = extractedInstructions[-1][0].replace("      "," 0x")
+		mainCRTSStartupAddress = int(instructionToReplace.split(" ")[1],16)
 		addressToReplace = int(extractedInstructions[-1][1],16)
 		print("found at "+"0x{:08x}".format(addressToReplace))
 		break
 	i += 2
-if instructionToReplace is not None and addressToReplace is not None:
+
+print("Disassembling _mainCRTStartup to identify main call...",end="")
+blcount = 0 # main call is the first call of the second block of two consecutive bl
+mainAddress = None
+i = 2
+while i < 150:
+	instructions = disasm(out[mainCRTSStartupAddress:mainCRTSStartupAddress+i],arch="thumb",vma=mainCRTSStartupAddress)
+	extractedInstructions = [(instruction[32:].split(" <")[0],instruction.split(":")[0]) for instruction in instructions.split("\n")]
+	if len(extractedInstructions) > 1 and extractedInstructions[-1][0][:3] == "bl " and  extractedInstructions[-2][0][:3] == "bl ":
+		blcount+=1
+		if blcount == 2:
+			mainAddress = int(extractedInstructions[-2][0].replace("      "," 0x").split(" ")[1],16)
+			print("found at "+"0x{:08x}".format(mainAddress))
+			break
+	i+=2
+
+print("Identifiying sd_event_wait function address...",end="")
+try:
+	sdEventWaitFunctionAddress = out.index(b"\x48\xdf\x70\x47")
+	print("found at "+"0x{:08x}".format(sdEventWaitFunctionAddress))
+except ValueError:
+	"not found, exiting..."
+	exit(1)
+
+print("Disassembling main to identify sd_event_wait function call ...",end="")
+i = 2
+while i < 1000:
+	instructions = disasm(out[mainAddress:mainAddress+i],arch="thumb",vma=mainAddress)
+	extractedInstructions = [(instruction[32:].split(" <")[0],instruction.split(":")[0]) for instruction in instructions.split("\n")]
+	if len(extractedInstructions) > 0 and extractedInstructions[-1][0][:3] == "bl " and int(extractedInstructions[-1][0].replace("      "," 0x").split(" ")[1],16) == sdEventWaitFunctionAddress:
+		sdRelatedInstructionToReplace = extractedInstructions[-1][0].replace("      "," 0x")
+		sdAddressToReplace = int(extractedInstructions[-1][1],16)
+		print("found at "+"0x{:08x}".format(sdAddressToReplace))
+
+		break
+	i+=2
+
+
+if instructionToReplace is not None and addressToReplace is not None and sdRelatedInstructionToReplace is not None and sdAddressToReplace is not None:
 	print("Generating patch configuration file...")
-	hooks += "\nCOMMON:rom:hook_init:""0x{:08x}".format(addressToReplace)+":on_init:"+instructionToReplace
+	hooks += "\nCOMMON:rom:hook_init:"+hex(addressToReplace)+":on_init:"+instructionToReplace
 	print("Adding hook on_init...")
+	hooks += "\nCOMMON:rom:hook_event_loop:"+hex(sdAddressToReplace)+":on_event_loop:"+sdRelatedInstructionToReplace
+	print("Adding hook on_event_loop...")
 
 	with open(inputPatchConfigurationFile,"r") as f:
 		content = f.readlines()

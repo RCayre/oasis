@@ -1,6 +1,6 @@
 from pwnlib.asm import asm
 import sys, os, subprocess
-import re
+import re,struct
 
 def run(command):
     if isinstance(command, str):
@@ -135,6 +135,8 @@ with open(romFile,"r") as f:
             tag,section,name,baseAddress,instr = rompatch
             if len(instr) > 2 and instr[:2] == "0x":
                 output2 += section+","+baseAddress+","+"{:08x}".format(int(instr,16))+","+name+"\n"
+            elif instr in functions:
+                output2 += section+","+baseAddress+","+struct.pack("I",int(functions[instr],16)+1).hex() +","+name+"_PTR"+"\n"
             else:
                 instruction = asm(instr,arch="thumb",vma=int(baseAddress,16))
                 output2 += section+","+baseAddress+","+instruction.hex()+","+name+"\n"

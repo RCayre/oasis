@@ -59,7 +59,7 @@ ifeq ($(PLATFORM),BOARD_NRF51) # NRF52840 with SoftDevice
 	CONF_DIR := boards/nrf51
 	GENERATE_CONF := python3 $(CONF_DIR)/generate_conf.py
 	HEAP_SIZE := 0x800
-	ARCH := armv6-m
+	ARCH := armv6s-m
 
 	RAM_LENGTH := 0x1000
 	CODE_LENGTH := 0x2000

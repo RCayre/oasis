@@ -59,3 +59,5 @@ if info == "FIRMWARE_SIZE":
     print(hex(len(out)))
 elif info == "MAX_RAM_ADDRESS":
     print(hex(struct.unpack("I",out[0x1b000:0x1b004])[0]))
+elif info == "SD_EVENT_WAIT_FUNCTION":
+	print(hex(out.index(b"\x48\xdf\x70\x47")))

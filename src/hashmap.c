@@ -56,7 +56,7 @@ void hashmap_declutter(hashmap_t *hashmap) {
     for(int i = 0; i < hashmap->nb_buckets; i++) {
       hashmap_entry_t * entry = hashmap->buckets[i];
       while(entry != NULL) {
-        // Checks with the user provided function if the 
+        // Checks with the user provided function if the
         // entry should be removed
         if(hashmap->check_to_remove(entry->data)) {
           // Save the addr for deletion purposes
@@ -71,21 +71,20 @@ void hashmap_declutter(hashmap_t *hashmap) {
     }
   }
 }
-
 int hashmap_put(hashmap_t *hashmap, uint8_t * addr, void *data) {
   // Removes unnecessary items from the hashmap if possible
   hashmap_declutter(hashmap);
-
   uint32_t key = hash(hashmap, addr);
-
   // Create the entry
   hashmap_entry_t * entry = (hashmap_entry_t *) malloc(sizeof(hashmap_entry_t));
   if(entry == NULL) {
     return -1;
   }
+  //send_hci(0xFF,&hashmap->addr_size,4);
   // Addr
   entry->addr = (uint8_t *) malloc(hashmap->addr_size);
   memcpy(entry->addr, addr, hashmap->addr_size);
+
   // Data
   entry->data = data;
   // Next
@@ -100,7 +99,6 @@ int hashmap_put(hashmap_t *hashmap, uint8_t * addr, void *data) {
     entry->next = hashmap->buckets[key];
     hashmap->buckets[key] = entry;
   }
-
   hashmap->nb_elements += 1;
 
   return 0;
@@ -157,7 +155,6 @@ void *hashmap_get(hashmap_t *hashmap, uint8_t * addr) {
       cur = cur->next;
     }
   }
-
   if(cur == NULL) {
     return NULL;
   } else {

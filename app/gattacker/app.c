@@ -25,9 +25,11 @@ typedef struct gattacker_data {
 } gattacker_data_t;
 
 static hashmap_t * hashmap = NULL;
-
+int attack_detected = 0;
+int here = 0;
 void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
   // Check if a packet was received
+
   if(metrics->scan_rx_done && metrics->scan_rx_frame_pdu_type == 0) {
     if(hashmap == NULL) {
       hashmap = hashmap_initialize(HASHMAP_SIZE, NULL, 6);
@@ -51,7 +53,7 @@ void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
         return;
       }
     } else {
-      data = (gattacker_data_t*)ret; 
+      data = (gattacker_data_t*)ret;
     }
 
     // Store the last timestamp for timeout purposes
@@ -64,9 +66,9 @@ void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
 
     // Exclude values after a channel switch
     if(data->last_channel == 0) {
-      data->last_channel = metrics->scan_rx_channel;  
+      data->last_channel = metrics->scan_rx_channel;
     } else if(data->last_channel != metrics->scan_rx_channel) {
-      data->last_channel = metrics->scan_rx_channel;  
+      data->last_channel = metrics->scan_rx_channel;
       return;
     }
 
@@ -79,8 +81,9 @@ void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
 
     // If the window has been entirely filled
     if(!data->window.is_init && data->window.cur == WINDOW_SIZE - 1) {
-      data->window.is_init = 1; 
-      log(metrics->scan_rx_frame_adv_addr, "GOOD", 4);
+      data->window.is_init = 1;
+      attack_detected = metrics->scan_rx_frame_adv_addr[0];
+      //log(metrics->scan_rx_frame_adv_addr, "GOOD", 4);
     }
 
     data->window.cur += 1;
@@ -109,17 +112,18 @@ void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
       /*********************************************************/
       /*                 Detect a MITM attack                  */
       /*********************************************************/
-      
+
       if(min < data->threshold) {
         // If we go below the threshold
         data->under_attack = 1;
-        log(metrics->scan_rx_frame_adv_addr, "MITM", 4);
+        attack_detected = 1;
+        //log(metrics->scan_rx_frame_adv_addr, "MITM", 4);
       } else if(data->under_attack) {
+        attack_detected = 0;
         // If we were under attack and we go above the threshold
         data->under_attack = 0;
-        log(metrics->scan_rx_frame_adv_addr, "END MITM", 8);
+        //log(metrics->scan_rx_frame_adv_addr, "END MITM", 8);
       }
     }
   }
 }
-

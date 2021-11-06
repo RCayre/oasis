@@ -14,9 +14,9 @@ extern metrics_t metrics;
 extern uint8_t scan_callbacks_size;
 extern callback_t scan_callbacks[];
 
-static hashmap_t * timestamp_hashmap = NULL;
+static hashmap_t * scan_timestamp_hashmap = NULL;
 
-static bool mutex = 0;
+bool mutex = 0;
 
 static bool check_timeout(void * data) {
   uint32_t current_timestamp = get_timestamp_in_us();
@@ -26,13 +26,12 @@ static bool check_timeout(void * data) {
 void process_scan_rx_header() {
 
 }
-
+int pointer = 0;
 void process_scan_rx() {
   metrics.scan_rx_done = is_rx_done();
 
-  if(metrics.scan_rx_done && mutex == 0) {
+  if(mutex == 0) {
     mutex = 1;
-
     copy_header(metrics.scan_rx_frame_header);
     metrics.scan_rx_frame_size = metrics.scan_rx_frame_header[1];
     metrics.scan_rx_frame_pdu_type = metrics.scan_rx_frame_header[0] & 0xF;
@@ -52,19 +51,20 @@ void process_scan_rx() {
       memcpy(metrics.scan_rx_frame_adv_addr, metrics.scan_rx_frame_payload, 6);
 
       // Initialize the timestamp hashmap if it hasn't been initialized yet
-      if(timestamp_hashmap == NULL) {
-        timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, check_timeout, 6);
+      if(scan_timestamp_hashmap == NULL) {
+        scan_timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, check_timeout, 6);
       }
-
       uint32_t current_timestamp = get_timestamp_in_us();
       // Get the previous timestamp for this address
-      void * previous_timestamp = hashmap_get(timestamp_hashmap, metrics.scan_rx_frame_adv_addr);
+      void * previous_timestamp = hashmap_get(scan_timestamp_hashmap, metrics.scan_rx_frame_adv_addr);
+
       if(previous_timestamp == NULL) {
         // Add the timestamp to the hashmap
         // We need to allocate memory as the hashmap takes ownership of the data
         uint32_t * current_timestamp_ptr = (uint32_t *) malloc(sizeof(uint32_t));
         *current_timestamp_ptr = current_timestamp;
-        hashmap_put(timestamp_hashmap, metrics.scan_rx_frame_adv_addr, current_timestamp_ptr);
+        hashmap_put(scan_timestamp_hashmap, metrics.scan_rx_frame_adv_addr, current_timestamp_ptr);
+        
         metrics.scan_rx_frame_interval = -1;
       } else {
         // Compute the frame interval
@@ -73,12 +73,15 @@ void process_scan_rx() {
         // Save the new timestamp
         *(uint32_t *)previous_timestamp = current_timestamp;
       }
-      //log(metrics.scan_rx_frame_adv_addr, &metrics.scan_rx_frame_interval, 4);
+      //send_hci(0, &metrics.scan_rx_frame_interval, 4);
 
+      //log(metrics.scan_rx_frame_adv_addr, "ABCD", 4);
 
       for(int i = 0; i < scan_callbacks_size; i++) {
         scan_callbacks[i](&metrics);
+        pointer++;
       }
+
 
 
 
@@ -89,5 +92,5 @@ void process_scan_rx() {
 }
 
 void process_scan_delete() {
-  hashmap_free(&timestamp_hashmap);
+  hashmap_free(&scan_timestamp_hashmap);
 }

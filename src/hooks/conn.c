@@ -16,7 +16,7 @@ extern uint8_t conn_tx_callbacks_size;
 extern callback_t conn_rx_callbacks[];
 extern callback_t conn_tx_callbacks[];
 
-static hashmap_t * timestamp_hashmap = NULL;
+static hashmap_t * conn_timestamp_hashmap = NULL;
 
 static uint32_t current_timestamp;
 
@@ -47,8 +47,8 @@ void process_conn_rx_header() {
 }
 
 void process_conn_rx(int adapt_timestamp) {
-  if(timestamp_hashmap == NULL) {
-    timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 4);
+  if(conn_timestamp_hashmap == NULL) {
+    conn_timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 4);
   }
 
   metrics.is_slave = is_slave();
@@ -70,13 +70,13 @@ void process_conn_rx(int adapt_timestamp) {
 		current_timestamp = current_timestamp - (metrics.conn_rx_frame_size+4+2+3)*8;
 	}
   // Get the previous timestamp for this address
-  void * previous_timestamp = hashmap_get(timestamp_hashmap, metrics.conn_access_addr);
+  void * previous_timestamp = hashmap_get(conn_timestamp_hashmap, metrics.conn_access_addr);
   if(previous_timestamp == NULL) {
     // Add the timestamp to the hashmap
     // We need to allocate memory as the hashmap takes ownership of the data
     uint32_t * current_timestamp_ptr = (uint32_t *) malloc(sizeof(uint32_t));
     *current_timestamp_ptr = current_timestamp;
-    hashmap_put(timestamp_hashmap, metrics.conn_access_addr, current_timestamp_ptr);
+    hashmap_put(conn_timestamp_hashmap, metrics.conn_access_addr, current_timestamp_ptr);
     metrics.conn_rx_frame_interval = -1;
   } else {
     if(current_timestamp == *(uint32_t *) previous_timestamp) {
@@ -101,5 +101,5 @@ void process_conn_delete() {
   uint8_t access_addr[4];
   copy_access_addr(access_addr);
   // Cleanup this connection
-  hashmap_delete(timestamp_hashmap, access_addr);
+  hashmap_delete(conn_timestamp_hashmap, access_addr);
 }

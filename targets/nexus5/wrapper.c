@@ -40,6 +40,7 @@ uint8_t * bd_address = (uint8_t *) 0x2024ec;
 uint8_t current_gap_role;
 void *connection_structure;
 uint32_t last_timestamp_in_event_loop;
+uint8_t connected;
 /* Generic Wrapper API */
 // Utilities functions
 

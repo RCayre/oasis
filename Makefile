@@ -23,9 +23,9 @@ endif
 ifeq ($(MAKECMDGOALS),attach)
 ifeq ($(TARGET),cyw20735)
   CYW20735_TTY := $(shell python3 $(SCRIPTS_DIR)/detect_cyw20735_ttyUSB.py)
-endif
 else ifneq ($(TARGET),cyw20735)
-	$(error Attach is only necessary for target 'cyw20735')
+  $(error Attach is only necessary for target 'cyw20735')
+endif
 endif
 
 ifeq ($(filter $(TARGET), $(SUPPORTED_TARGETS)),)

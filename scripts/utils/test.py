@@ -48,6 +48,7 @@ def parse_conn_rx_test_message(message):
 
 
 def show_test_message(message):
+    print(message)
     out = message["type"]+" ("
     for k,v in message.items():
         if k != "type":

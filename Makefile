@@ -104,7 +104,7 @@ attach:
 	sudo stty -F $(CYW20735_TTY) 3000000
 	sudo btattach -B $(CYW20735_TTY) &
 	sleep 1
-	sudo hciconfig | grep hci1 -n1 | grep BD | awk '{print $$3" "$$4}'
+	sudo hciconfig | grep hci0 -n1 | grep BD | awk '{print $$3" "$$4}'
 
 patch:
 	python3 $(SCRIPTS_DIR)/patch_target.py $(TARGET)

@@ -1,4 +1,4 @@
-from utils import patch_parser,conf_parser
+from utils import patch_parser,conf_parser,test
 from interface import openocd,internalblue
 import sys
 
@@ -11,6 +11,7 @@ if len(sys.argv) < 3:
     print("Commands: monitor <address>")
     print("Commands: monitor <address> <size>")
     print("Commands: log")
+    print("Commands: run-test")
     print("Commands: start-scan")
     print("Commands: stop-scan")
 
@@ -47,6 +48,7 @@ def monitor(address,value):
     except KeyboardInterrupt:
         interface.disconnect()
 
+
 if command == "log":
     interface = getInterface()
     interface.connect()
@@ -56,6 +58,20 @@ if command == "log":
     except KeyboardInterrupt:
         interface.disconnect()
         exit(0)
+
+elif command == "run-test":
+    interface = getInterface()
+    interface.connect()
+    try:
+        for log in interface.log():
+            msg = test.parse_test_message(log)
+            if msg is not None:
+                test.show_test_message(msg)
+    except KeyboardInterrupt:
+        interface.disconnect()
+        exit(0)
+
+
 elif command == "read" or command == "monitor":
     if len(sys.argv) < 4:
         print("Please provide a symbol or an address to read.")

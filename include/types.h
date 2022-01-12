@@ -32,6 +32,6 @@ struct metrics;
 typedef void (*callback_t)(struct metrics *);
 
 #define NULL (void*)0
-
+#define true        1
+#define false       0
 #endif
-

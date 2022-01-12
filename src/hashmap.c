@@ -1,7 +1,5 @@
 #include "hashmap.h"
-
 #include "malloc.h"
-#include "log.h"
 
 #define NULL (void*)0
 
@@ -80,7 +78,6 @@ int hashmap_put(hashmap_t *hashmap, uint8_t * addr, void *data) {
   if(entry == NULL) {
     return -1;
   }
-  //send_hci(0xFF,&hashmap->addr_size,4);
   // Addr
   entry->addr = (uint8_t *) malloc(hashmap->addr_size);
   memcpy(entry->addr, addr, hashmap->addr_size);

@@ -2,8 +2,7 @@
 #define HASHMAP_H
 
 #include <types.h>
-
-#include "functions.h"
+#include "wrapper.h"
 
 /* This is an implementation of a hashmap where keys are advertising addresses
  * and values can be anything. This choice was made because of the time and

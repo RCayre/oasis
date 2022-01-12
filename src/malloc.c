@@ -1,7 +1,6 @@
 #include "malloc.h"
+#include "wrapper.h"
 
-#include "functions.h"
-#include "log.h"
 
 typedef struct block {
   uint16_t size;
@@ -73,7 +72,9 @@ uint8_t merge_if_possible(block_t * b, uint16_t size) {
 int weird = 0;
 
 void * malloc(uint16_t size) {
-  while ((size % 4) != 0) {size++;}
+  #ifdef ALIGNED_MALLOC
+  while ((size % 4) != 0) size++;
+  #endif
   // Initialize the memory if new
   if(blocks == NULL) {
     blocks = (block_t*)memory;

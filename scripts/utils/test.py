@@ -1,7 +1,7 @@
 import struct
 
 
-get get_gap_role(gap_role):
+def get_gap_role(gap_role):
     role = "UNKNOWN"
     if gap_role == 0:
         role = "ADVERTISER"

@@ -175,11 +175,13 @@ void log(uint8_t *buffer, uint8_t size) {
 /* Hooks */
 // Event loop hook
 void on_event_loop() {
-    if (now() - last_timestamp_in_event_loop  > 1000000) {
-        last_timestamp_in_event_loop = now();
+    uint32_t current_time = now();
+    if (current_time - last_timestamp_in_event_loop  > 1000000) {
+        last_timestamp_in_event_loop = current_time;
         process_time();
     }
 }
+
 
 // Advertising setup hook
 void on_adv_setup() {
@@ -211,12 +213,21 @@ void on_conn_rx_header() {
 void on_conn_rx(void * ptr) {
     connection_structure = ptr;
     current_gap_role = (is_slave() ? GAP_ROLE_PERIPHERAL : GAP_ROLE_CENTRAL);
-    process_conn_rx(false);
+
+    if (connected == 0) {
+        connected = 1;
+        process_conn_init();
+    }
+    if (is_rx_done()) {
+        process_conn_rx(false);
+    }
 }
 
 void on_conn_delete(void * ptr) {
-    connection_structure = ptr;
+    connected = 0;
     process_conn_delete();
+    connection_structure = ptr;
 }
+
 
 #endif

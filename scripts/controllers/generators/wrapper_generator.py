@@ -39,6 +39,8 @@ BROADCOM_WRAPPER_GLOBALS_VARIABLES = """
 uint8_t current_gap_role;
 void *connection_structure;
 uint32_t last_timestamp_in_event_loop;
+uint8_t connected = 0;
+
 """
 
 BROADCOM_WRAPPER_GENERIC_API = """
@@ -239,7 +241,7 @@ void on_scan_rx() {
 void on_conn_rx_header() {
     process_conn_rx_header();
 }
-uint8_t connected = 0;
+
 void on_conn_rx(void * ptr) {
     connection_structure = ptr;
     current_gap_role = (is_slave() ? GAP_ROLE_PERIPHERAL : GAP_ROLE_CENTRAL);

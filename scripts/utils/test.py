@@ -58,7 +58,7 @@ def show_test_message(message):
             elif isinstance(v,int):
                 out += str(v)
             elif isinstance(v,str):
-                out += str
+                out += v
             out += ", "
     out = out[:-2]+")"
     print(out)

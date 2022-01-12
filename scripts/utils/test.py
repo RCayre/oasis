@@ -39,7 +39,9 @@ def parse_scan_rx_test_message(message):
 def parse_conn_init_test_message(message):
     access_address, crc_init, hop_interval = struct.unpack("IIH",message[1:11])
     channel_map =  message[11:][::-1]
-    return {"type":"CONN_INIT","access_address" :access_address, "crc_init":crc_init, "hop_interval":hop_interval, "channel_map":channel_map}
+    access_address = hex(access_address)
+    crc_init = hex(crc_init)
+    return {"type":"CONN_INIT","access_address" :access_address, "crc_init":crc_init, "hop_interval":hop_interval, "channel_map":bytes(channel_map)}
 
 def parse_conn_rx_test_message(message):
     timestamp, valid, channel, rssi = struct.unpack("IHHH", message[1:11])

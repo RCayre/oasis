@@ -8,12 +8,20 @@ typedef enum gap_role {
   CENTRAL = 3
 } gap_role_t;
 
-typedef struct device {
+typedef struct local_device {
+  gap_role_t gap_role;
+  uint8_t address[6];
+} local_device_t;
+
+typedef struct remote_device {
   address_type_t address_type;
   gap_role_t gap_role;
-  uint32_t advertisements_interval;
-  uint32_t connection_interval;
   uint8_t address[6];
-} device_t;
-
+  #ifdef SCAN_ENABLED
+  uint32_t advertisements_interval;
+  #endif
+  #ifdef CONNECTION_ENABLED
+  uint32_t connection_interval;
+  #endif
+} remote_device_t;
 #endif

@@ -13,4 +13,6 @@
 #define CONN_TX_CALLBACK(name) \
   _conn_tx_callback_## name
 
+#define CONN_INIT_CALLBACK(name) \
+  _conn_init_callback_## name
 #endif

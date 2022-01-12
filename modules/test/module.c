@@ -18,6 +18,10 @@ void SCAN_CALLBACK(test)(metrics_t * metrics) {
   log(buffer,2+get_packet_size());
 }
 
+void CONN_INIT_CALLBACK(test)(metrics_t * metrics) {
+  uint32_t timestamp = now();
+  log((uint8_t*)&timestamp, 4);
+}
 
 void CONN_RX_CALLBACK(test)(metrics_t * metrics) {
   uint8_t buffer[255];

@@ -58,6 +58,7 @@ void process_conn_rx_header() {
 }
 
 void process_conn_rx(bool adapt_timestamp) {
+  // TODO: add gap role to remote device
 	connection_t* current_connection = metrics.current_connection;
 	current_connection->packets_lost_counter = 0;
 	copy_channel_map(current_connection->channel_map);

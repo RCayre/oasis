@@ -31,6 +31,9 @@ void process_scan_rx_header() {
 uint32_t frame_interval = 0;
 
 void process_scan_rx() {
+    // TODO: add gap role to remote device
+    // TODO: add address to remote device (from connection ?)
+
     local_device_t* local_device = metrics.local_device;
     copy_own_bd_addr(local_device->address);
     local_device->gap_role = (gap_role_t)get_current_gap_role();

@@ -8,9 +8,9 @@
 
 typedef struct metrics {
   packet_t *current_packet;
-  device_t *current_device;
   connection_t *current_connection;
-  device_t *local_device;
+  local_device_t *local_device;
+  remote_device_t *remote_device;
 } metrics_t;
 
 #endif

@@ -34,7 +34,7 @@ def parse_time_test_message(message):
 def parse_scan_rx_test_message(message):
     timestamp, valid, channel, rssi = struct.unpack("IHHH", message[1:11])
     packet = message[11:]
-    return {"type":"SCAN_RX","timestamp" :timestamp, "valid":valid, "channel":channel, "rssi":rssi, "packet":packet}
+    return {"type":"SCAN_RX","timestamp" :timestamp, "valid":valid, "channel":channel, "rssi":rssi, "packet":bytes(packet)}
 
 def parse_conn_init_test_message(message):
     access_address, crc_init, hop_interval = struct.unpack("IIH",message[1:11])
@@ -44,11 +44,10 @@ def parse_conn_init_test_message(message):
 def parse_conn_rx_test_message(message):
     timestamp, valid, channel, rssi = struct.unpack("IHHH", message[1:11])
     packet = message[11:]
-    return {"type":"CONN_RX","timestamp" :timestamp, "valid":valid, "channel":channel, "rssi":rssi, "packet":packet}
+    return {"type":"CONN_RX","timestamp" :timestamp, "valid":valid, "channel":channel, "rssi":rssi, "packet":bytes(packet)}
 
 
 def show_test_message(message):
-    print(message)
     out = message["type"]+" ("
     for k,v in message.items():
         if k != "type":

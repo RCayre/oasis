@@ -142,7 +142,7 @@ elif command == "connect":
         address = sys.argv[3].upper()
         addressType = sys.argv[4].lower() if sys.argv[4].lower() in ("public","random") else "public"
 
-        addressBytes = bytes.fromhex(address.replace(":",""))[::-1]
+    addressBytes = bytes.fromhex(address.replace(":",""))[::-1]
     interface = getInterface()
     interface.connect()
 

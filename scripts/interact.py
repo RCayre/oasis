@@ -1,6 +1,6 @@
 from utils import patch_parser,conf_parser,test
 from interface import openocd,internalblue
-import sys
+import sys,time
 
 if len(sys.argv) < 3:
     print("Usage: "+sys.argv[0]+" <target> <command>")
@@ -56,7 +56,7 @@ if command == "log":
     interface.connect()
     try:
         for log in interface.log():
-            print(log.hex())
+            print("<"+target+"> ["+str(time.time())+"]"+log.hex())
     except KeyboardInterrupt:
         interface.disconnect()
         exit(0)

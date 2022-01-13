@@ -19,7 +19,7 @@ void TIME_CALLBACK(jamming)(metrics_t * metrics) {
   if (metrics->local_device->gap_role == SCANNER) {
     interval++;
 
-    if (interval % DETECTION_INTERVAL == 0) {
+    if ((interval % DETECTION_INTERVAL) == 0) {
       //log((uint8_t*)number_of_packets,4*3);
       if (number_of_packets[0] == 0) { continuous_jamming_detected = 37; log((uint8_t*)&continuous_jamming_detected,4);}
       if (number_of_packets[1] == 0) {continuous_jamming_detected = 38; log((uint8_t*)&continuous_jamming_detected,4);}

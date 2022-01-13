@@ -143,9 +143,10 @@ elif command == "connect":
         addressType = sys.argv[4].lower() if sys.argv[4].lower() in ("public","random") else "public"
 
         addressBytes = bytes.fromhex(address.replace(":",""))[::-1]
-        interface = getInterface()
-        interface.connect()
+    interface = getInterface()
+    interface.connect()
 
-        if interface.sendHciCommand(0x200D,b"\x60\x00\x30\x00\x00" + (b"\x00" if addressType == "public" else 0x01) + addressBytes + b"\x01\x18\x00\x28\x00\x00\x00\xd0\x07\x00\x00\x00\x00"): # start connection
-            print("Start Connection OK")
-        # TODO : find a way to identify the handler to be able to use HCI_Command_Hdr()/HCI_Cmd_Disconnect(handle=handle) 
+    if interface.sendHciCommand(0x200D,b"\x60\x00\x30\x00\x00" + (b"\x00" if addressType == "public" else 0x01) + addressBytes + b"\x01\x18\x00\x28\x00\x00\x00\xd0\x07\x00\x00\x00\x00"): # start connection
+        print("Start Connection OK")
+    interface.disconnect()
+    # TODO : find a way to identify the handler to be able to use HCI_Command_Hdr()/HCI_Cmd_Disconnect(handle=handle)

@@ -376,6 +376,7 @@ void on_radio_interrupt() {
                 last_conn_timestamp = get_timestamp();
                 last_conn_crc_ok = get_crc();
                 last_conn_channel = get_current_channel();
+                rssi = *RADIO_RSSI;
                 memcpy(tmp_conn_buffer,(void*)*RADIO_PACKETPTR,25);
             }
             /*
@@ -411,4 +412,3 @@ void on_set_bd_address(void *addr,void *addr2) {
         memcpy(bd_address,addr2,6);
     }
 }
-

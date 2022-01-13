@@ -39,6 +39,8 @@ uint8_t * bd_address = (uint8_t *) 0x201c64;
 uint8_t current_gap_role;
 void *connection_structure;
 uint32_t last_timestamp_in_event_loop;
+uint8_t connected = 0;
+
 /* Generic Wrapper API */
 // Utilities functions
 
@@ -203,22 +205,28 @@ void on_scan_rx() {
 
 #ifdef CONNECTION_ENABLED
 
+
 // Connection-related hooks
 void on_conn_rx_header() {
     process_conn_rx_header();
 }
 
 void on_conn_rx(void * ptr) {
+    connection_structure = ptr;
+    current_gap_role = (is_slave() ? GAP_ROLE_PERIPHERAL : GAP_ROLE_CENTRAL);
+
+    if (connected == 0) {
+        connected = 1;
+        process_conn_init();
+    }
     if (is_rx_done()) {
-        connection_structure = ptr;
-        current_gap_role = (is_slave() ? GAP_ROLE_PERIPHERAL : GAP_ROLE_CENTRAL);
         process_conn_rx(false);
     }
 }
 
 void on_conn_delete(void * ptr) {
-    connection_structure = ptr;
+    connected = 0;
     process_conn_delete();
+    connection_structure = ptr;
 }
-
 #endif

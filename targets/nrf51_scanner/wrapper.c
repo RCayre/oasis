@@ -204,6 +204,7 @@ void copy_buffer(uint8_t * dst, uint8_t size) {
 }
 
 // Multi-role functions
+
 uint8_t get_current_channel() {
     uint8_t channel = 0;
     uint32_t frequency = *(uint32_t*)RADIO_FREQUENCY;
@@ -411,3 +412,4 @@ void on_set_bd_address(void *addr,void *addr2) {
         memcpy(bd_address,addr2,6);
     }
 }
+

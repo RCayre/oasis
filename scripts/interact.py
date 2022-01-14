@@ -47,6 +47,8 @@ def monitor(address,value):
             if value != printedValue:
                 printedValue = value
                 print(printedValue.hex())
+                sys.stdout.flush()
+                sys.stderr.flush()
     except KeyboardInterrupt:
         interface.disconnect()
 

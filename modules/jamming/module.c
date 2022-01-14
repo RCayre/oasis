@@ -36,7 +36,7 @@ void TIME_CALLBACK(jamming)(metrics_t * metrics) {
       channel_watched[2] = 0;
     }
     else {
-      uint32_t channel = get_channel();
+      uint32_t channel = get_current_channel();
       if (channel == 37 || channel == 38 || channel == 39) {
         channel_watched[channel-37] = 1;
       }

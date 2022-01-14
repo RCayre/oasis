@@ -106,6 +106,10 @@ uint8_t get_channel() {
     #endif
 }
 
+uint8_t get_current_channel() {
+  return get_channel();
+}
+
 // Connection-related functions
 
 #ifdef CONNECTION_ENABLED

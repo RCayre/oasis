@@ -24,8 +24,8 @@ void TIME_CALLBACK(jamming)(metrics_t * metrics) {
     if ((interval % DETECTION_INTERVAL) == 0) {
       //log((uint8_t*)number_of_packets,4*3);
       if (number_of_packets[0] == 0 && !channel_watched[0]) { continuous_jamming_detected = 37; log((uint8_t*)&continuous_jamming_detected,4);}
-      if (number_of_packets[1] == 0 && !channel_watched[0]) {continuous_jamming_detected = 38; log((uint8_t*)&continuous_jamming_detected,4);}
-      if (number_of_packets[2] == 0 && !channel_watched[0]) {continuous_jamming_detected = 39; log((uint8_t*)&continuous_jamming_detected,4);}
+      if (number_of_packets[1] == 0 && !channel_watched[1]) {continuous_jamming_detected = 38; log((uint8_t*)&continuous_jamming_detected,4);}
+      if (number_of_packets[2] == 0 && !channel_watched[2]) {continuous_jamming_detected = 39; log((uint8_t*)&continuous_jamming_detected,4);}
 
       number_of_packets[0] = 0;
       number_of_packets[1] = 0;

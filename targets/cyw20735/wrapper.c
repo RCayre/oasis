@@ -93,6 +93,7 @@ void copy_own_bd_addr(uint8_t * dst) {
     memcpy(dst, bd_address, 6);
 }
 
+
 uint8_t get_channel() {
     #ifdef SCAN_ENABLED
     if (current_gap_role == GAP_ROLE_ADVERTISER || current_gap_role == GAP_ROLE_SCANNER) {
@@ -106,6 +107,9 @@ uint8_t get_channel() {
     #endif
 }
 
+uint8_t get_current_channel() {
+  return get_channel();
+}
 // Connection-related functions
 
 #ifdef CONNECTION_ENABLED

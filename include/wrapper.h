@@ -15,6 +15,7 @@ bool is_rx_done();
 void copy_buffer(uint8_t * dst, uint8_t size);
 uint8_t get_channel();
 void copy_own_bd_addr(uint8_t * dst);
+uint8_t get_current_channel();
 uint8_t get_current_gap_role();
 
 #ifdef CONNECTION_ENABLED

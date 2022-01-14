@@ -67,7 +67,7 @@ class OpenocdInterface(Interface):
             return self.writeRam(address,value)
 
     def log(self):
-        patches = patch_parser.getPatches()
+        patches = patch_parser.getMapping(self.target)
         if patches is None:
             return None
         else:

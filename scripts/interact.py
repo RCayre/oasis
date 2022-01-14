@@ -56,7 +56,7 @@ if command == "log":
     interface.connect()
     try:
         for log in interface.log():
-            print("<"+target+"> ["+str(time.time())+"]"+log.hex())
+            print("<"+target+"> ["+str(time.time())+"] "+log.hex())
     except KeyboardInterrupt:
         interface.disconnect()
         exit(0)

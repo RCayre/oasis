@@ -6,7 +6,7 @@ def progress(count, total, suffix=''):
 
     percents = round(100.0 * count / float(total), 1)
     bar = '#' * filled_len + ' ' * (bar_len - filled_len)
-    sys.stdout.write("  "*100+"\r\r")
+    sys.stdout.write("  "*100+"\r")
     sys.stdout.flush()
 
     message = '[%s] %s%s ...%s\r' % (bar, percents, '%', suffix)

@@ -56,6 +56,8 @@ def monitor(address,value):
 if command == "log":
     interface = getInterface()
     interface.connect()
+    sys.stdout.flush()
+    sys.stderr.flush()
     try:
         for log in interface.log():
             print("<"+target+"> ["+str(time.time())+"] "+log.hex())

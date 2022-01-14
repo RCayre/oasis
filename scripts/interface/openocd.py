@@ -82,9 +82,9 @@ class OpenocdInterface(Interface):
                 newLog = None
                 while True:
                     logContent = self.read(logAddress,logMaxSize)
-                    if newLog != logContent and logContent[0] != 0:
+                    if newLog != logContent and logContent[1] != 0:
                         newLog = logContent
-                        yield newLog[1:1+newLog[0]]
+                        yield newLog[2:2+newLog[1]]
 
     def patchRam(self, address, value):
         if not self.patching:

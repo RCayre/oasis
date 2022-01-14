@@ -387,6 +387,7 @@ uint8_t channel_map[5] = {0,0,0,0,0};
 uint8_t bd_address[6] = {0,0,0,0,0,0};
 
 uint8_t log_buffer[250];
+uint8_t log_counter = 0;
 
 ble_gap_scan_params_t scan_parameters =
 {
@@ -543,8 +544,9 @@ void stop_scan() {
 
 void log(uint8_t* buffer,uint8_t size) {
     memset(log_buffer,0x00,250);
-    memcpy(log_buffer+1, buffer, size);
-    log_buffer[0] = size;
+    memcpy(log_buffer+2, buffer, size);
+    log_buffer[0] = log_counter++;
+    log_buffer[1] = size;
 }
 
 """

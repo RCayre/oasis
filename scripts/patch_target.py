@@ -26,7 +26,7 @@ if patches is not None:
         else:
             message += "KO"
             error = True
-        display.progress(count, len(patches),message)
+        display.progress(count, len(patches),message.replace("\n",""))
         count += 1
         sys.stdout.flush()
     print()

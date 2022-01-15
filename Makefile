@@ -62,7 +62,7 @@ MODULES_OBJ = $(foreach module,$(MODULES), $(BUILD_DIR)/$(MODULES_DIR)/$(module)
 MODULES_BUILD = $(foreach module,$(MODULES), $(BUILD_DIR)/$(MODULES_DIR)/$(module))
 
 DEPENDENCIES = $(shell python3 $(SCRIPTS_DIR)/extract_dependencies.py $(MODULES))
-DEPENDENCIES_GCC_GLAGS = $(foreach dependency,$(DEPENDENCIES), -D$(dependency)_ENABLED)
+DEPENDENCIES_GCC_FLAGS = $(foreach dependency,$(DEPENDENCIES), -D$(dependency)_ENABLED)
 endif
 endif
 
@@ -80,7 +80,7 @@ create_build_directory: $(MODULES_BUILD)
 	mkdir -p $(BUILD_DIR)
 
 $(BUILD_DIR)/$(MODULES_DIR)/%/module.o: $(MODULES_DIR)/%/module.c
-	arm-none-eabi-gcc $< $(CFLAGS) -c -o $@ -I $(INCLUDE_DIR)
+	arm-none-eabi-gcc $< $(CFLAGS) $(DEPENDENCIES_GCC_FLAGS) -c -o $@ -I $(INCLUDE_DIR)
 
 $(BUILD_DIR)/callbacks.c: $(MODULES_OBJ)
 	python3 $(SCRIPTS_DIR)/generate_callbacks.py $(MODULES)
@@ -89,7 +89,7 @@ $(BUILD_DIR)/trampolines.c: $(TARGET_DIR)/patch.conf
 	python3 $(SCRIPTS_DIR)/generate_trampolines.py $(TARGET) $(DEPENDENCIES)
 
 $(BUILD_DIR)/out.elf: $(BUILD_DIR)/callbacks.c $(MODULES_OBJ) $(SOURCE_DIR)/*.c $(SOURCE_DIR)/**/*.c $(BUILD_DIR)/trampolines.c $(TARGET_DIR)/wrapper.c
-	arm-none-eabi-gcc $(DEPENDENCIES_GCC_GLAGS) -DHEAP_SIZE=$(HEAP_SIZE) $(BUILD_DIR)/callbacks.c $(MODULES_OBJ) $(SOURCE_DIR)/*.c $(SOURCE_DIR)/**/*.c $(BUILD_DIR)/trampolines.c $(CFLAGS) $(TARGET_DIR)/wrapper.c -T $(TARGET_DIR)/linker.ld $(TARGET_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR) -Wl,"--defsym=CODE_START=$(CODE_START)" -Wl,"--defsym=CODE_SIZE=$(CODE_SIZE)" -Wl,"--defsym=DATA_START=$(DATA_START)"  -Wl,"--defsym=DATA_SIZE=$(DATA_SIZE)"
+	arm-none-eabi-gcc $(DEPENDENCIES_GCC_FLAGS) -DHEAP_SIZE=$(HEAP_SIZE) $(BUILD_DIR)/callbacks.c $(MODULES_OBJ) $(SOURCE_DIR)/*.c $(SOURCE_DIR)/**/*.c $(BUILD_DIR)/trampolines.c $(CFLAGS) $(TARGET_DIR)/wrapper.c -T $(TARGET_DIR)/linker.ld $(TARGET_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR) -Wl,"--defsym=CODE_START=$(CODE_START)" -Wl,"--defsym=CODE_SIZE=$(CODE_SIZE)" -Wl,"--defsym=DATA_START=$(DATA_START)"  -Wl,"--defsym=DATA_SIZE=$(DATA_SIZE)"
 
 $(BUILD_DIR)/symbols.sym: $(BUILD_DIR)/out.elf
 	arm-none-eabi-nm -S -a $(BUILD_DIR)/out.elf | sort > $(BUILD_DIR)/symbols.sym

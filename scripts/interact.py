@@ -117,7 +117,7 @@ elif command == "read" or command == "monitor":
 elif command == "start-scan":
     interface = getInterface()
     interface.connect()
-    if interface.sendHciCommand(0x200b,bytes.fromhex("00200020000000")): # set scan parameters
+    if interface.sendHciCommand(0x200b,bytes.fromhex("00002000200000")): # set scan parameters
         print("Set Scan Parameters OK")
     else:
         print("Error during Set Scan Parameters")

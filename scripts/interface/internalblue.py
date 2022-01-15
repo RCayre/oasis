@@ -5,8 +5,24 @@ import internalblue.hci as hci
 from pwnlib.asm import disasm
 from pwnlib import context
 from queue import Queue
+from utils import exec
 
 class InternalblueInterface(Interface):
+    def getCompatibleHCIBoards(self):
+        device_list = self.internalblue.device_list()
+        compatible_device_list = []
+        for dev in device_list:
+            out,err = exec.execute_with_output("hciconfig -a "+dev[1])
+            if b"Cypress" in out or b"Broadcom" in out:
+                compatible_device_list.append(dev[1])
+        return compatible_device_list
+
+    def getADBBoards(self):
+        device_list = self.internalblue.device_list()
+        compatible_device_list = []
+        for dev in device_list:
+            compatible_device_list.append(dev[1])
+        return compatible_device_list
 
     def instantiateInternalblue(self):
         self.interfaceNumber = 0
@@ -18,9 +34,9 @@ class InternalblueInterface(Interface):
         elif self.interface == "INTERNALBLUE_ADB_SERIAL":
             self.internalblue = ADBCore(serial=True)
         self.internalblue.log_level="ERROR"
-        device_list = self.internalblue.device_list()
+        devices = self.getCompatibleHCIBoards() if "HCI" in self.interface else self.getADBBoards()
         try:
-            self.internalblue.interface = device_list[self.interfaceNumber][1]
+            self.internalblue.interface = devices[self.interfaceNumber]
 
         except:
             print("Interface error: interface not found !")

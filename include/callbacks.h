@@ -18,4 +18,5 @@
 
 #define CONN_DELETE_CALLBACK(name) \
   _conn_delete_callback_## name
+  
 #endif

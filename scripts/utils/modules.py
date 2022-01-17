@@ -65,7 +65,7 @@ def generateCallbacksFile(time_callbacks, scan_callbacks,conn_init_callbacks,con
     content += "\n"
 
     # Callback prototype
-    for callback in time_callbacks + scan_callbacks + conn_init_callbacks  + conn_rx_callbacks + conn_tx_callbacks:
+    for callback in time_callbacks + scan_callbacks + conn_init_callbacks + conn_delete_callbacks  + conn_rx_callbacks + conn_tx_callbacks:
         content += "void " + callback + "(metrics_t * metrics);\n"
 
     content += "\n\n"

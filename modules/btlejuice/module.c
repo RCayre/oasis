@@ -15,8 +15,6 @@ void CONN_INIT_CALLBACK(btlejuice)(metrics_t * metrics) {
   if(!is_scanning) {
     start_scan();
     is_scanning = 1;
-    uint32_t test = 0x41424344;
-    log(&test,4);
   }
 }
 void CONN_DELETE_CALLBACK(btlejuice)(metrics_t * metrics) {

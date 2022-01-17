@@ -32,7 +32,7 @@ void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {
 
     if(same) {
       btlejuice_detected = 1;
-      log(metrics->local_device->address, 6);
+      log(metrics->remote_device->address,6);
       stop_scan();
     }
 

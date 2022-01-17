@@ -33,7 +33,7 @@ uint8_t * rx_header_register = (uint8_t *) 0x318b98;
 uint8_t * rx_register = (uint8_t *) 0x370a00;
 uint8_t * status_register = (uint8_t *) 0x318bac;
 uint8_t * channel = (uint8_t *) 0x20efaa;
-uint8_t * hci_callbacks_table = (uint8_t *) 0x86fd4;
+uint8_t * hci_callbacks_table = (uint8_t *) 0x86fd0;
 uint8_t * bd_address = (uint8_t *) 0x201c64;
 /* Global variables used internally by the wrapper */
 uint8_t current_gap_role;
@@ -167,7 +167,7 @@ void start_scan() {
 
 void stop_scan() {
     uint8_t buffer[2];
-    buffer[0] = 1;
+    buffer[0] = 0;
     buffer[1] = 0;
     run_hci_command(0xc, buffer, 2);
 }

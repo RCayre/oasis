@@ -15,7 +15,6 @@
 
 #define CONN_INIT_CALLBACK(name) \
   _conn_init_callback_## name
-#endif
 
 #define CONN_DELETE_CALLBACK(name) \
   _conn_delete_callback_## name

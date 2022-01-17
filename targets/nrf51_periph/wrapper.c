@@ -420,4 +420,3 @@ void on_set_bd_address(void *addr,void *addr2) {
         memcpy(bd_address,addr2,6);
     }
 }
-

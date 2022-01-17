@@ -323,7 +323,7 @@ void on_event_loop() {
         process_conn_rx(true);
         packet_flag_conn_rx = 0;
     }
-    if (connected == 1 && (now() - last_conn_timestamp) > 100000) {
+    if (connected == 1 && (now() - last_conn_timestamp) > 1000000) {
         process_conn_delete();
         connected = 0;
     }

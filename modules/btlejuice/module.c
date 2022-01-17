@@ -6,23 +6,20 @@
 
 static bool is_scanning = 0;
 
-void CONN_RX_CALLBACK(btlejuice)(metrics_t * metrics) {
+void CONN_INIT_CALLBACK(test)(metrics_t * metrics) {
   if(!metrics->local_device->gap_role != PERIPHERAL) {
     return;
   }
-
   if(!is_scanning) {
-    start_scan();
+    log(&is_scanning,1);//start_scan();
     is_scanning = 1;
   }
 }
 
-uint8_t content[120];
-
 int btlejuice_detected = 0;
 void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {
   if(is_scanning && metrics->current_packet->valid && get_adv_packet_type() == ADV_IND) {
-    bool same = 1;
+    /*bool same = 1;
     uint8_t i = 0;
 
     while(same && i < 6) {
@@ -31,10 +28,10 @@ void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {
     }
 
     if(same) {
-      btlejuice_detected = 1;
+      btlejuice_detected = 1;*/
       log(metrics->remote_device->address,6);
-      stop_scan();
-    }
+      /*stop_scan();
+    }*/
 
   }
 }

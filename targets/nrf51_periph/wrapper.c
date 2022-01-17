@@ -310,6 +310,10 @@ void on_event_loop() {
     */
     #ifdef CONNECTION_ENABLED
     if (packet_flag_conn_rx == 1) {
+        if (connected == 0) {
+          connected = 1;
+          process_conn_init();
+        }
         tmp_buffer = &tmp_conn_buffer[0];
         last_crc_ok = last_conn_crc_ok;
         last_timestamp = last_conn_timestamp;
@@ -359,8 +363,6 @@ void on_init() {
 #ifdef CONNECTION_ENABLED
 // Connection initialization hook
 void on_init_connection() {
-    connected = 1;
-    process_conn_init();
 }
 #endif
 

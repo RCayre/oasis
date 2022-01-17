@@ -3,3 +3,4 @@ btsnoop.log
 internalblue_stackdump*
 maps/*
 *.pyc
+ __pycache__/

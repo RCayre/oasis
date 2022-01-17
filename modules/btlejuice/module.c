@@ -7,14 +7,18 @@
 static bool is_scanning = 0;
 
 void CONN_INIT_CALLBACK(test)(metrics_t * metrics) {
+  /* // TODO: wrong gap_role value, to fix
   if(!metrics->local_device->gap_role != PERIPHERAL) {
     return;
   }
+  */
   if(!is_scanning) {
     start_scan();
     is_scanning = 1;
   }
 }
+
+uint8_t content[120];
 
 int btlejuice_detected = 0;
 void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {

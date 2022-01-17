@@ -167,7 +167,7 @@ void start_scan() {
 
 void stop_scan() {
     uint8_t buffer[2];
-    buffer[0] = 1;
+    buffer[0] = 0;
     buffer[1] = 0;
     run_hci_command(0xc, buffer, 2);
 }

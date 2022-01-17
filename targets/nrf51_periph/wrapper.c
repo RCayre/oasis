@@ -115,7 +115,7 @@ uint8_t *tmp_buffer = 0;
 uint32_t access_address = 0;
 uint32_t crc_init = 0;
 uint8_t channel_map[5] = {0,0,0,0,0};
-uint32_t connected = 0;
+uint16_t connected = 0;
 #endif
 
 uint8_t bd_address[6] = {0,0,0,0,0,0};

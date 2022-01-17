@@ -101,6 +101,7 @@ uint32_t last_conn_timestamp = 0;
 uint8_t packet_flag_conn_rx = 0;
 uint8_t tmp_conn_buffer[128];
 
+bool connected = 0;
 #endif
 
 uint8_t rssi = 0;
@@ -304,6 +305,9 @@ void on_event_loop() {
     }
     */
     #ifdef CONNECTION_ENABLED
+    if (connected && (now() - last_conn_timestamp) > 100000) {
+      process_conn_delete();
+    }
     if (packet_flag_conn_rx == 1) {
         tmp_buffer = &tmp_conn_buffer[0];
         last_crc_ok = last_conn_crc_ok;
@@ -348,6 +352,7 @@ void on_init() {
 #ifdef CONNECTION_ENABLED
 // Connection initialization hook
 void on_init_connection() {
+    connected = 1;
     process_conn_init();
 }
 #endif

@@ -1,274 +1,9 @@
-from string import Template
 
-WRAPPER_INCLUDES = """
 #include "wrapper.h"
 #include "events.h"
 #include "malloc.h"
-"""
 
-
-BROADCOM_WRAPPER_HEADER = """
-#define GAP_ROLE_ADVERTISER 0
-#define GAP_ROLE_PERIPHERAL 1
-#define GAP_ROLE_SCANNER    2
-#define GAP_ROLE_CENTRAL    3
-
-#ifdef CONNECTION_ENABLED
-
-uint8_t IS_SLAVE_OFFSET = $is_slave_offset;
-uint8_t CHANNEL_OFFSET = $channel_offset;
-uint8_t SECOND_STRUCT_OFFSET = $second_struct_offset;
-uint8_t HOP_INTERVAL_OFFSET_IN_SECOND_STRUCT = $hop_interval_offset;
-uint8_t CHANNEL_MAP_OFFSET_IN_SECOND_STRUCT = $channel_map_offset;
-uint8_t CRC_INIT_OFFSET_IN_SECOND_STRUCT = $crc_init_offset;
-uint8_t ACCESS_ADDR_OFFSET_IN_SECOND_STRUCT = $access_address_offset;
-
-#endif
-"""
-
-BROADCOM_WRAPPER_REGISTERS = """
-uint8_t * rx_header_register = (uint8_t *) $rx_header_register;
-uint8_t * rx_register = (uint8_t *) $rx_register;
-uint8_t * status_register = (uint8_t *) $status_register;
-uint8_t * channel = (uint8_t *) $channel;
-uint8_t * hci_callbacks_table = (uint8_t *) $hci_callbacks_table;
-uint8_t * bd_address = (uint8_t *) $bd_address;
-"""
-
-BROADCOM_WRAPPER_GLOBALS_VARIABLES = """
-uint8_t current_gap_role;
-void *connection_structure;
-uint32_t last_timestamp_in_event_loop;
-uint8_t connected = 0;
-
-"""
-
-BROADCOM_WRAPPER_GENERIC_API = """
-// Utilities functions
-
-void * memcpy(void * dst, void * src, uint32_t size) {
-    return __rt_memcpy(dst, src, size);
-}
-
-
-// Time-related functions
-
-uint32_t get_timestamp_in_us() {
-    uint32_t t[2];
-    btclk_GetNatClk_clkpclk(t);
-    return btclk_Convert_clkpclk_us(t);
-}
-
-uint32_t now() {
-    return get_timestamp_in_us();
-}
-
-// Packet-related functions
-
-int get_rssi() {
-    return lm_getRawRssiWithTaskId();
-}
-
-void copy_header(uint8_t * dst) {
-    utils_memcpy8(dst, rx_header_register, 2);
-}
-
-bool is_rx_done() {
-    return *status_register & 0x4;
-}
-
-void copy_buffer(uint8_t * dst, uint8_t size) {
-    utils_memcpy8(dst, rx_register, size);
-}
-
-bool is_crc_good() {
-    return (*status_register & 0x2) == 2;
-}
-
-// Multi-roles functions
-
-uint8_t get_current_gap_role() {
-    return current_gap_role;
-}
-
-void copy_own_bd_addr(uint8_t * dst) {
-    memcpy(dst, bd_address, 6);
-}
-
-uint8_t get_channel() {
-    #ifdef SCAN_ENABLED
-    if (current_gap_role == GAP_ROLE_ADVERTISER || current_gap_role == GAP_ROLE_SCANNER) {
-        return 37+*channel;
-    }
-    #endif
-    #ifdef CONNECTION_ENABLED
-    if (current_gap_role == GAP_ROLE_CENTRAL || current_gap_role == GAP_ROLE_PERIPHERAL) {
-        return *(uint8_t *)(connection_structure + CHANNEL_OFFSET);
-    }
-    #endif
-}
-
-uint8_t get_current_channel() {
-  return get_channel();
-}
-
-// Connection-related functions
-
-#ifdef CONNECTION_ENABLED
-bool is_slave() {
-    return *(uint8_t *)(connection_structure + IS_SLAVE_OFFSET) != 0;
-}
-
-void copy_channel_map(uint8_t * dst) {
-    void * p = *(void**)(connection_structure + SECOND_STRUCT_OFFSET);
-    memcpy(dst, p + CHANNEL_MAP_OFFSET_IN_SECOND_STRUCT, 5);
-}
-
-uint16_t get_hop_interval() {
-    void * p = *(void**)(connection_structure + SECOND_STRUCT_OFFSET);
-    return *(uint16_t*)(p + HOP_INTERVAL_OFFSET_IN_SECOND_STRUCT);
-}
-
-uint32_t get_crc_init() {
-    void * p = *(void**)(connection_structure + SECOND_STRUCT_OFFSET);
-    return *(uint32_t*)(p + CRC_INIT_OFFSET_IN_SECOND_STRUCT);
-}
-
-void copy_access_addr(uint32_t * dst) {
-    void * p = *(void**)(connection_structure + SECOND_STRUCT_OFFSET);
-    memcpy(dst, p + ACCESS_ADDR_OFFSET_IN_SECOND_STRUCT, 4);
-}
-#endif
-"""
-
-BROADCOM_WRAPPER_OLD_HCI_API = """
-void send_hci_event(uint8_t opcode, void * content, uint32_t size) {
-    char *hci_buffer = bthci_event_AllocateEventAndFillHeader(opcode, size + 2);
-    memcpy(hci_buffer + 2, content, size);
-    bthci_event_AttemptToEnqueueEventToTransport(hci_buffer);
-    bthci_event_FreeEvent(hci_buffer);
-}
-
-void run_hci_command(uint16_t opcode, uint8_t * buffer, uint8_t size) {
-    uint8_t * param = (uint8_t *) malloc(size + 3);
-    param[0] = opcode & 0xFF;
-    param[1] = (opcode & 0xFF00) >> 8;
-    param[2] = size;
-
-    // Copy the hci command parameter
-    memcpy(param + 3, buffer, size);
-
-    uint8_t error_code;
-    void (*handler)(uint8_t *error_code,uint8_t * buffer) = (void*)*(uint32_t *)(hci_callbacks_table + opcode*4);
-    handler(&error_code,param);
-    free(param);
-}
-"""
-
-BROADCOM_WRAPPER_NEW_HCI_API = """
-void send_hci_event(uint8_t opcode, void * content, uint32_t size) {
-    char *hci_buffer = bthci_event_AllocateEventAndFillHeader(size + 2, opcode, size);
-    memcpy(hci_buffer + 10, content, size);
-    bthci_event_AttemptToEnqueueEventToTransport(hci_buffer);
-}
-
-void run_hci_command(uint16_t opcode, uint8_t * buffer, uint8_t size) {
-    uint8_t * param = (uint8_t *) malloc(size + 11);
-    // Set first 11 bytes to 0
-    for(uint8_t i = 0; i < 12; i++) {
-    param[i] = 0;
-    }
-    // Copy the hci command parameter
-    memcpy(param + 12, buffer, size);
-
-    void (*handler)(uint8_t * buffer) = (void*)*(uint32_t *)(hci_callbacks_table + (opcode << 3) - 8);
-    handler(param);
-    free(param);
-}
-"""
-
-BROADCOM_WRAPPER_ACTIONS_API = """
-void start_scan() {
-    uint8_t buffer[2];
-    buffer[0] = 1;
-    buffer[1] = 0;
-    run_hci_command(0xc, buffer, 2);
-}
-
-void stop_scan() {
-    uint8_t buffer[2];
-    buffer[0] = 1;
-    buffer[1] = 0;
-    run_hci_command(0xc, buffer, 2);
-}
-
-void log(uint8_t *buffer, uint8_t size) {
-    send_hci_event(0xFF, buffer, size);
-}
-"""
-
-BROADCOM_WRAPPER_HOOKS = """
-// Event loop hook
-void on_event_loop() {
-    uint32_t current_time = now();
-    if (current_time - last_timestamp_in_event_loop  > 1000000) {
-        last_timestamp_in_event_loop = current_time;
-        process_time();
-    }
-}
-
-// Advertising setup hook
-void on_adv_setup() {
-    current_gap_role = GAP_ROLE_ADVERTISER;
-}
-
-#ifdef SCAN_ENABLED
-
-// Scan-related hooks
-void on_scan_rx_header() {
-    current_gap_role = GAP_ROLE_SCANNER;
-    process_scan_rx_header();
-}
-
-void on_scan_rx() {
-    if (is_rx_done()) {
-        current_gap_role = GAP_ROLE_SCANNER;
-        process_scan_rx();
-    }
-}
-
-#endif
-
-#ifdef CONNECTION_ENABLED
-
-// Connection-related hooks
-void on_conn_rx_header() {
-    process_conn_rx_header();
-}
-
-void on_conn_rx(void * ptr) {
-    connection_structure = ptr;
-    current_gap_role = (is_slave() ? GAP_ROLE_PERIPHERAL : GAP_ROLE_CENTRAL);
-
-    if (connected == 0) {
-        connected = 1;
-        process_conn_init();
-    }
-    if (is_rx_done()) {
-        process_conn_rx(false);
-    }
-}
-
-void on_conn_delete(void * ptr) {
-    connected = 0;
-    process_conn_delete();
-    connection_structure = ptr;
-}
-
-#endif
-"""
-
-NRF51_SOFTDEVICE_WRAPPER_HEADER = """
+/* Constants and peripherals registers */
 // Radio interruption type constants
 #define RX_TYPE 1
 #define TX_TYPE 2
@@ -331,18 +66,16 @@ typedef struct
   uint16_t timeout;
 } ble_gap_scan_params_t;
 
-"""
-
-NRF51_SOFTDEVICE_WRAPPER_GLOBAL_VARIABLES = """
+/* Global variables used internally by the wrapper */
 extern uint32_t CODE_START[];
 extern uint32_t DATA_START[];
 extern uint32_t DATA_SIZE[];
 
 // Internal softdevice variables used by the wrapper
-uint8_t *current_gap_role = (uint8_t *)$gap_role;
-uint8_t *interrupt_type = (uint8_t *)$interrupt_type;
-uint8_t *interrupt_type_central = (uint8_t*)$interrupt_type_central;
-uint32_t *hop_interval = (uint32_t*)$hop_interval;
+uint8_t *current_gap_role = (uint8_t *)0x200000a1;
+uint8_t *interrupt_type = (uint8_t *)0x20000d7c;
+uint8_t *interrupt_type_central = (uint8_t*)0x20000d7a;
+uint32_t *hop_interval = (uint32_t*)0x20000ee4;
 
 // action command field
 uint32_t command = NO_COMMAND;
@@ -399,9 +132,7 @@ ble_gap_scan_params_t scan_parameters =
     (uint16_t)0x0050,
     0x0000
 };
-"""
-
-NRF51_SOFTDEVICE_WRAPPER_API = """
+/* Generic Wrapper API */
 // Utilities functions
 void * memcpy(void * dst, void * src, uint32_t size) {
 	for (int i=0;i<size;i++) {
@@ -521,9 +252,7 @@ void copy_access_addr(uint32_t * dst) {
     memcpy(dst,&access_address,4);
 }
 #endif
-"""
-
-NRF51_SOFTDEVICE_WRAPPER_ACTIONS_API = """
+/* Actions API */
 uint32_t sd_ble_gap_scan_start(ble_gap_scan_params_t* p_scan_params) {
     __asm__("svc 0x8a");
 }
@@ -550,9 +279,7 @@ void log(uint8_t* buffer,uint8_t size) {
     log_buffer[1] = size;
 }
 
-"""
-
-NRF51_SOFTDEVICE_WRAPPER_HOOKS = """
+/* Hooks */
 
 // Event loop hook
 
@@ -694,55 +421,3 @@ void on_set_bd_address(void *addr,void *addr2) {
     }
 }
 
-"""
-def generateIncludes():
-    return WRAPPER_INCLUDES
-
-def generateComment(comment):
-    return "/* "+ comment +" */"
-
-def generateBroadcomWrapperHeader(offsets):
-    template = Template(BROADCOM_WRAPPER_HEADER)
-    return template.substitute(**offsets)
-
-def generateNrf51SoftdeviceWrapperHeader():
-    return NRF51_SOFTDEVICE_WRAPPER_HEADER
-
-def generateFunctionSignature(function,returnValue, parameters):
-    return returnValue+" "+function+" ("+parameters+");"
-
-def generateBroadcomWrapperRegisters(registers):
-    template = Template(BROADCOM_WRAPPER_REGISTERS)
-    return template.substitute(**registers)
-
-def generateBroacomWrapperGlobalsVariables():
-    return BROADCOM_WRAPPER_GLOBALS_VARIABLES
-
-def generateNrf51SoftdeviceWrapperGlobalsVariables(variables):
-    template = Template(NRF51_SOFTDEVICE_WRAPPER_GLOBAL_VARIABLES)
-    return template.substitute(**{k:hex(v) for k,v in variables.items()})
-
-
-def generateBroadcomGenericAPI():
-    return BROADCOM_WRAPPER_GENERIC_API
-
-def generateNrf51SoftdeviceWrapperAPI():
-    return NRF51_SOFTDEVICE_WRAPPER_API
-
-def generateBroadcomNewHciAPI():
-    return BROADCOM_WRAPPER_NEW_HCI_API
-
-def generateBroadcomOldHciAPI():
-    return BROADCOM_WRAPPER_OLD_HCI_API
-
-def generateBroadcomWrapperActionsAPI():
-    return BROADCOM_WRAPPER_ACTIONS_API
-
-def generateNrf51SoftdeviceWrapperActionsAPI():
-    return NRF51_SOFTDEVICE_WRAPPER_ACTIONS_API
-
-def generateBroadcomWrapperHooks():
-    return BROADCOM_WRAPPER_HOOKS
-
-def generateNrf51SoftdeviceWrapperHooks():
-    return NRF51_SOFTDEVICE_WRAPPER_HOOKS

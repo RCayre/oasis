@@ -33,7 +33,7 @@ uint8_t * rx_header_register = (uint8_t *) 0x318b98;
 uint8_t * rx_register = (uint8_t *) 0x370c00;
 uint8_t * status_register = (uint8_t *) 0x318bac;
 uint8_t * channel = (uint8_t *) 0x283356;
-uint8_t * hci_callbacks_table = (uint8_t *) 0x143eac;
+uint8_t * hci_callbacks_table = (uint8_t *) 0x143ea8; // TODO: fixing wrapper generation, wrong value here (hci_callbacks_table + 4  ?) 
 uint8_t * bd_address = (uint8_t *) 0x280ca4;
 /* Global variables used internally by the wrapper */
 uint8_t current_gap_role;

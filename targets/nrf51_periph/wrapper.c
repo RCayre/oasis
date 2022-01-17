@@ -148,19 +148,18 @@ void * memset(void * dst, uint8_t value, uint32_t size) {
 
 // Time-related functions
 void timer2_init() {
-    *TIMER2_INTENSET = 0x30000;
+    *TIMER2_INTENSET = 0x10000;
     *TIMER2_MODE = 0;
     *TIMER2_WIDTH = 0;
 
     *TIMER2_PRESCALER = 4;
     *TIMER2_SHORTS = 1;
     *TIMER2_CC0 = 10000;
-    *TIMER2_CC1 = 1;
+    //*TIMER2_CC1 = 1;
 
     *NVIC_DISABLEIRQ = *NVIC_DISABLEIRQ & 0xff00ffff | 0x400000;
 
     *NVIC_CLEARPENDINGIRQ = 0x400;
-    *NVIC_DISABLEIRQ = *NVIC_DISABLEIRQ | (3 << 10);
     *NVIC_ENABLEIRQ = 0x400;
 
     *TIMER2_START = 1;
@@ -342,10 +341,12 @@ void on_timer_interrupt() {
         *TIMER2_EVENTCOMPARE0 = 0;
         millis++;
     }
+    /*
     if (*TIMER2_EVENTCOMPARE1 != 0) {
         *TIMER2_EVENTCOMPARE1 = 0;
         on_event_loop();
     }
+    */
 }
 
 // Initialization hook

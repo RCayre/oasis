@@ -456,6 +456,7 @@ class BroadcomController(Controller):
         callbackTableAddress = None
         if self.firmwareInformations["hci_implementation"] == "new":
             pattern = patterns.generatePattern([
+                {"joker":4},
                 {"value":"0b000600"},
                 {"joker":4},
                 {"value":"00000900"}

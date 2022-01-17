@@ -12,9 +12,11 @@ extern metrics_t metrics;
 extern uint8_t conn_init_callbacks_size;
 extern callback_t conn_init_callbacks[];
 extern uint8_t conn_rx_callbacks_size;
-extern uint8_t conn_tx_callbacks_size;
 extern callback_t conn_rx_callbacks[];
+extern uint8_t conn_tx_callbacks_size;
 extern callback_t conn_tx_callbacks[];
+extern uint8_t conn_delete_callbacks_size;
+extern callback_t conn_delete_callbacks[];
 
 static hashmap_t * conn_timestamp_hashmap = NULL;
 
@@ -113,6 +115,9 @@ void process_conn_rx(bool adapt_timestamp) {
 }
 
 void process_conn_delete() {
+	for(int i = 0; i < conn_delete_callbacks_size; i++) {
+		conn_delete_callbacks[i](&metrics);
+	}
 }
 
 #endif

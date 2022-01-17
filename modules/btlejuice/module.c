@@ -6,7 +6,7 @@
 
 static bool is_scanning = 0;
 
-void CONN_INIT_CALLBACK(test)(metrics_t * metrics) {
+void CONN_INIT_CALLBACK(btlejuice)(metrics_t * metrics) {
   /* // TODO: wrong gap_role value, to fix
   if(!metrics->local_device->gap_role != PERIPHERAL) {
     return;
@@ -15,6 +15,12 @@ void CONN_INIT_CALLBACK(test)(metrics_t * metrics) {
   if(!is_scanning) {
     start_scan();
     is_scanning = 1;
+  }
+}
+void CONN_DELETE_CALLBACK(btlejuice)(metrics_t * metrics) {
+  if (is_scanning) {
+    stop_scan();
+    is_scanning = 0;
   }
 }
 

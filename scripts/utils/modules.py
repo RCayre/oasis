@@ -35,6 +35,7 @@ def getModuleCallbacks(name):
     time_callbacks = []
     scan_callbacks = []
     conn_init_callbacks = []
+    conn_delete_callbacks = []
     conn_rx_callbacks = []
     conn_tx_callbacks = []
     moduleBuildDirectory = os.path.abspath(os.path.dirname(__file__)+"/../../build/modules/"+name)
@@ -50,13 +51,15 @@ def getModuleCallbacks(name):
                     conn_rx_callbacks += [name]
                 elif "_conn_init_callback_" in name:
                     conn_init_callbacks += [name]
+                elif "_conn_delete_callback_" in name:
+                    conn_delete_callbacks += [name]
                 elif "_conn_tx_callback_" in name:
                     conn_tx_callbacks += [name]
-        return {"time_callbacks":time_callbacks, "scan_callbacks":scan_callbacks,"conn_init_callbacks":conn_init_callbacks,  "conn_rx_callbacks":conn_rx_callbacks, "conn_tx_callbacks":conn_tx_callbacks}
+        return {"time_callbacks":time_callbacks, "scan_callbacks":scan_callbacks,"conn_init_callbacks":conn_init_callbacks,"conn_delete_callbacks":conn_delete_callbacks,  "conn_rx_callbacks":conn_rx_callbacks, "conn_tx_callbacks":conn_tx_callbacks}
     else:
         return None
 
-def generateCallbacksFile(time_callbacks, scan_callbacks,conn_init_callbacks, conn_rx_callbacks, conn_tx_callbacks):
+def generateCallbacksFile(time_callbacks, scan_callbacks,conn_init_callbacks,conn_delete_callbacks,  conn_rx_callbacks, conn_tx_callbacks):
     content = '#include "types.h"\n'
     content += '#include "metrics.h"\n'
     content += "\n"
@@ -93,6 +96,12 @@ def generateCallbacksFile(time_callbacks, scan_callbacks,conn_init_callbacks, co
         content += "\t" + callback + ",\n"
     content += "};\n\n"
 
+    content += "uint8_t conn_delete_callbacks_size = " + str(len(conn_delete_callbacks)) + ";\n"
+    # Callbacks
+    content += "callback_t conn_delete_callbacks[" + str(len(conn_delete_callbacks)) + "] = {\n"
+    for callback in conn_delete_callbacks:
+        content += "\t" + callback + ",\n"
+    content += "};\n\n"
 
     content += "uint8_t conn_rx_callbacks_size = " + str(len(conn_rx_callbacks)) + ";\n"
     # Callbacks

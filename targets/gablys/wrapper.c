@@ -115,11 +115,13 @@ uint8_t *tmp_buffer = 0;
 uint32_t access_address = 0;
 uint32_t crc_init = 0;
 uint8_t channel_map[5] = {0,0,0,0,0};
+uint16_t connected = 0;
 #endif
 
 uint8_t bd_address[6] = {0,0,0,0,0,0};
 
 uint8_t log_buffer[250];
+uint8_t log_counter = 0;
 
 ble_gap_scan_params_t scan_parameters =
 {
@@ -146,14 +148,14 @@ void * memset(void * dst, uint8_t value, uint32_t size) {
 
 // Time-related functions
 void timer2_init() {
-    *TIMER2_INTENSET = 0x30000;
+    *TIMER2_INTENSET = 0x10000;
     *TIMER2_MODE = 0;
     *TIMER2_WIDTH = 0;
 
     *TIMER2_PRESCALER = 4;
     *TIMER2_SHORTS = 1;
     *TIMER2_CC0 = 10000;
-    *TIMER2_CC1 = 1;
+    //*TIMER2_CC1 = 1;
 
     *NVIC_DISABLEIRQ = *NVIC_DISABLEIRQ & 0xff00ffff | 0x400000;
 
@@ -272,8 +274,9 @@ void stop_scan() {
 
 void log(uint8_t* buffer,uint8_t size) {
     memset(log_buffer,0x00,250);
-    memcpy(log_buffer+1, buffer, size);
-    log_buffer[0] = size;
+    memcpy(log_buffer+2, buffer, size);
+    log_buffer[0] = log_counter++;
+    log_buffer[1] = size;
 }
 
 /* Hooks */
@@ -307,6 +310,10 @@ void on_event_loop() {
     */
     #ifdef CONNECTION_ENABLED
     if (packet_flag_conn_rx == 1) {
+        if (connected == 0) {
+          connected = 1;
+          process_conn_init();
+        }
         tmp_buffer = &tmp_conn_buffer[0];
         last_crc_ok = last_conn_crc_ok;
         last_timestamp = last_conn_timestamp;
@@ -315,6 +322,10 @@ void on_event_loop() {
         process_conn_rx_header();
         process_conn_rx(true);
         packet_flag_conn_rx = 0;
+    }
+    if (connected == 1 && (now() - last_conn_timestamp) > 1000000) {
+        process_conn_delete();
+        connected = 0;
     }
     #endif
     if (command == START_SCAN) {
@@ -334,10 +345,12 @@ void on_timer_interrupt() {
         *TIMER2_EVENTCOMPARE0 = 0;
         millis++;
     }
+    /*
     if (*TIMER2_EVENTCOMPARE1 != 0) {
         *TIMER2_EVENTCOMPARE1 = 0;
         on_event_loop();
     }
+    */
 }
 
 // Initialization hook
@@ -350,7 +363,6 @@ void on_init() {
 #ifdef CONNECTION_ENABLED
 // Connection initialization hook
 void on_init_connection() {
-    process_conn_init();
 }
 #endif
 

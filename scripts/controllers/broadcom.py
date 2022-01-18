@@ -459,7 +459,9 @@ class BroadcomController(Controller):
                 {"joker":4},
                 {"value":"0b000600"},
                 {"joker":4},
-                {"value":"00000900"}
+                {"value":"00000900"},
+                {"joker":4},
+                {"value":"00000e00"}
             ])
             for address in patterns.findPattern(self.firmware,pattern):
                 callbackTableAddress = address

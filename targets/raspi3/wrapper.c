@@ -180,7 +180,7 @@ void log(uint8_t *buffer, uint8_t size) {
 void on_event_loop() {
     uint32_t current_time = now();
     if (current_time - last_timestamp_in_event_loop  > 1000000) {
-        last_timestamp_in_event_loop = now();
+        last_timestamp_in_event_loop = current_time;
         process_time();
     }
 }

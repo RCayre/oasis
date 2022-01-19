@@ -159,8 +159,8 @@ void run_hci_command(uint16_t opcode, uint8_t * buffer, uint8_t size) {
 }
 /* Actions API */
 void start_scan() {
-    uint8_t buffer_params[6] = {0x00,0x00,0x20,0x00,0x20,0x00,0x00};
-    run_hci_command(0xb, buffer_params, 6);
+    uint8_t buffer_params[7] = {0x00,0x00,0x20,0x00,0x20,0x00,0x00};
+    run_hci_command(0xb, buffer_params, 7);
 
     uint8_t buffer[2];
     buffer[0] = 1;

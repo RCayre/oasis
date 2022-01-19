@@ -7,19 +7,19 @@
 bool is_scanning = 0;
 
 void CONN_INIT_CALLBACK(btlejuice)(metrics_t * metrics) {
-  if(!is_scanning) {
+  //if(!is_scanning) {
     start_scan();
     is_scanning = 1;
-  }
+  //}
 }
 
 void CONN_RX_CALLBACK(btlejuice)(metrics_t * metrics) {
-  if(!is_scanning && metrics->current_connection->rx_counter < 75) {
+  /*if(!is_scanning && metrics->current_connection->rx_counter < 75) {
     start_scan();
     is_scanning = 1;
-  }
+  }*/
   if(is_scanning && metrics->current_connection->rx_counter > 75) {
-    stop_scan();
+    //stop_scan();
     is_scanning = 0;
   }
 }
@@ -38,7 +38,7 @@ void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {
     if(same) {
       is_scanning = 0;
       log(metrics->remote_device->address,6);
-      stop_scan();
+      //stop_scan();
     }
 
   }

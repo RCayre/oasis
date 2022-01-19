@@ -82,7 +82,7 @@ class OpenocdInterface(Interface):
                 newLog = None
                 while True:
                     logContent = self.read(logAddress,logMaxSize)
-                    if newLog[0] != logContent[0] and logContent[1] != 0:
+                    if newLog is not None and newLog[0] != logContent[0] and logContent[1] != 0:
                         newLog = logContent
                         yield newLog[2:2+newLog[1]]
 

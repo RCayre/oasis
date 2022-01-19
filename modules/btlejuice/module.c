@@ -35,7 +35,7 @@ void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {
 
     if(same) {
       is_scanning = 0;
-      log(&metrics->remote_device->address,6);
+      log(metrics->remote_device->address,6);
       //stop_scan();
     }
 

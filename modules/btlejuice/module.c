@@ -32,7 +32,8 @@ void CONN_RX_CALLBACK(btlejuice)(metrics_t * metrics) {
 }
 */
 void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {
-  if(is_scanning/* && metrics->current_packet->valid && get_adv_packet_type() == ADV_IND*/) {
+  if(is_scanning && metrics->current_packet->valid && get_adv_packet_type() == ADV_IND) {
+    log(metrics->remote_device->address,6);
     bool same = 1;
     uint8_t i = 0;
 
@@ -43,7 +44,7 @@ void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {
 
     if(same) {
       is_scanning = 0;
-      log(metrics->remote_device->address,6);
+      log(&is_scanning,1);
       stop_scan();
     }
 

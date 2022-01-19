@@ -43,9 +43,9 @@ void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {
     }
 
     if(same) {
-      is_scanning = 0;
-      log(&is_scanning,1);
-      stop_scan();
+      //is_scanning = 0;
+      log(&is_scanning,6);
+      //stop_scan();
     }
 
   }

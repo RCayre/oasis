@@ -12,19 +12,25 @@ void CONN_INIT_CALLBACK(btlejuice)(metrics_t * metrics) {
     return;
   }
   */
+  if (is_scanning)
+  {
+      stop_scan();
+      is_scanning = 0;
+  }
   if(!is_scanning) {
     start_scan();
     is_scanning = 1;
   }
-}
 
+}
+/*
 void CONN_RX_CALLBACK(btlejuice)(metrics_t * metrics) {
   if (is_scanning && metrics->current_connection->rx_counter > 50) {
     stop_scan();
     is_scanning = 0;
   }
 }
-
+*/
 void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {
   if(is_scanning && metrics->current_packet->valid && get_adv_packet_type() == ADV_IND) {
     bool same = 1;

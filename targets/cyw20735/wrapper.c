@@ -155,7 +155,7 @@ void run_hci_command(uint16_t opcode, uint8_t * buffer, uint8_t size) {
 
     void (*handler)(uint8_t * buffer) = (void*)*(uint32_t *)(hci_callbacks_table + (opcode << 3) - 8);
     handler(param);
-    free(param);
+    //free(param);
 }
 /* Actions API */
 void start_scan() {

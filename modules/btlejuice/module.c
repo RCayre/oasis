@@ -4,7 +4,7 @@
 #include "hashmap.h"
 #include "malloc.h"
 
-static bool is_scanning = 0;
+bool is_scanning = 0;
 
 void CONN_INIT_CALLBACK(btlejuice)(metrics_t * metrics) {
   /* // TODO: wrong gap_role value, to fix

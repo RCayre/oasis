@@ -14,7 +14,7 @@ void CONN_INIT_CALLBACK(btlejuice)(metrics_t * metrics) {
 }
 
 void CONN_RX_CALLBACK(btlejuice)(metrics_t * metrics) {
-  if(!is_scanning && && metrics->current_connection->rx_counter < 75) {
+  if(!is_scanning && metrics->current_connection->rx_counter < 75) {
     start_scan();
     is_scanning = 1;
   }

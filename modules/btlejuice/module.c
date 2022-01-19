@@ -32,7 +32,7 @@ void CONN_RX_CALLBACK(btlejuice)(metrics_t * metrics) {
 }
 */
 void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {
-  if(is_scanning && metrics->current_packet->valid && get_adv_packet_type() == ADV_IND) {
+  if(is_scanning/* && metrics->current_packet->valid && get_adv_packet_type() == ADV_IND*/) {
     bool same = 1;
     uint8_t i = 0;
 

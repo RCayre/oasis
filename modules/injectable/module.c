@@ -73,6 +73,11 @@ uint32_t valp = 0;
 uint32_t value = 0xFFFFFFFF;
 uint32_t vvv = 0;
 uint16_t update = 0;
+
+void CONN_DELETE_CALLBACK(injectable)(metrics_t *metrics) {
+  hashmap_free(&hashmap);
+  hashmap = NULL;
+}
 void CONN_RX_CALLBACK(injectable)(metrics_t * metrics) {
   // This detection is intended to be used as a slave
   if(metrics->local_device->gap_role != PERIPHERAL) {

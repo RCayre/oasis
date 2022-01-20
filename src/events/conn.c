@@ -5,8 +5,8 @@
 #include "hashmap.h"
 
 #ifdef CONNECTION_ENABLED
-
 #define TIMESTAMP_HASHMAP_SIZE 4
+
 extern metrics_t metrics;
 
 extern uint8_t conn_init_callbacks_size;
@@ -22,7 +22,9 @@ extern callback_t conn_delete_callbacks[];
 static hashmap_t * conn_timestamp_hashmap = NULL;
 
 void process_conn_init() {
+
 	connection_t* current_connection = metrics.current_connection;
+
 	copy_channel_map(current_connection->channel_map);
 	current_connection->hop_interval = get_hop_interval();
 	copy_access_addr(&current_connection->access_address);
@@ -61,7 +63,7 @@ void process_conn_rx_header() {
 }
 
 void process_conn_rx(bool adapt_timestamp) {
-  // TODO: add gap role to remote device
+
 	connection_t* current_connection = metrics.current_connection;
 	current_connection->packets_lost_counter = 0;
 	copy_channel_map(current_connection->channel_map);
@@ -75,11 +77,10 @@ void process_conn_rx(bool adapt_timestamp) {
 	local_device->gap_role = (gap_role_t)get_current_gap_role();
 
 	remote_device_t* remote_device = metrics.remote_device;
-
+	remote_device->gap_role = (local_device->gap_role == PERIPHERAL ? CENTRAL : PERIPHERAL);
 
 	packet_t* current_packet = metrics.current_packet;
   current_packet->rssi = get_rssi();
-
 	if (adapt_timestamp) {
 		current_packet->timestamp = current_packet->timestamp - (get_packet_size()+4+2+3)*8;
 	}
@@ -119,6 +120,7 @@ void process_conn_delete() {
 	for(int i = 0; i < conn_delete_callbacks_size; i++) {
 		conn_delete_callbacks[i](&metrics);
 	}
+	hashmap_delete(conn_timestamp_hashmap, (uint8_t*)&metrics.current_connection->access_address);
 }
 
 #endif

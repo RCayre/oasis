@@ -71,10 +71,7 @@ void process_scan_rx() {
           // Save the new timestamp
           *(uint32_t *)previous_timestamp = current_packet->timestamp;
         }
-
       }
-
-
     }
     for(int i = 0; i < scan_callbacks_size; i++) {
       scan_callbacks[i](&metrics);

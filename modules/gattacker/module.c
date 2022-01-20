@@ -5,7 +5,10 @@
 #include "hashmap.h"
 #include "malloc.h"
 
+#define GATTACKER_ALERT_NUMBER 2
+
 #define MAX_ADV_DELAY 10000
+
 #define WINDOW_SIZE 36
 #define HASHMAP_SIZE 16
 #define HASHMAP_TIMEOUT 1000
@@ -24,20 +27,19 @@ typedef struct gattacker_data {
   uint32_t last_timestamp;
 } gattacker_data_t;
 
-static hashmap_t * hashmap = NULL;
-int attack_detected = 0;
-int here = 0;
+static hashmap_t * gattacker_hashmap = NULL;
+
 void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
   // Check if a packet was received
 
   if(get_adv_packet_type() == ADV_IND) {
-    if(hashmap == NULL) {
-      hashmap = hashmap_initialize(HASHMAP_SIZE, NULL, 6);
+    if(gattacker_hashmap == NULL) {
+      gattacker_hashmap = hashmap_initialize(HASHMAP_SIZE, NULL, 6);
     }
 
     // Get this device's data for detecting a gattacker attack
     gattacker_data_t * data;
-    void * ret = hashmap_get(hashmap, metrics->remote_device->address);
+    void * ret = hashmap_get(gattacker_hashmap, metrics->remote_device->address);
     if(ret == NULL) {
       // Add an entry if it wasn't found
       data = (gattacker_data_t *) malloc(sizeof(gattacker_data_t));
@@ -47,7 +49,7 @@ void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
       data->threshold = 0;
       data->under_attack = 0;
       data->last_timestamp = 0;
-      int err = hashmap_put(hashmap, metrics->remote_device->address, data);
+      int err = hashmap_put(gattacker_hashmap, metrics->remote_device->address, data);
       // If there was not enough memory, skip
       if(err == -1) {
         return;
@@ -82,8 +84,6 @@ void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
     // If the window has been entirely filled
     if(!data->window.is_init && data->window.cur == WINDOW_SIZE - 1) {
       data->window.is_init = 1;
-      attack_detected = metrics->remote_device->address[0];
-      //log(metrics->scan_rx_frame_adv_addr, "GOOD", 4);
     }
 
     data->window.cur += 1;
@@ -116,13 +116,10 @@ void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
       if(min < data->threshold) {
         // If we go below the threshold
         data->under_attack = 1;
-        attack_detected = 1;
         log(metrics->remote_device->address,6);
       } else if(data->under_attack) {
-        attack_detected = 0;
         // If we were under attack and we go above the threshold
         data->under_attack = 0;
-        //log(metrics->scan_rx_frame_adv_addr, "END MITM", 8);
       }
     }
   }

@@ -3,7 +3,9 @@
 #include "callbacks.h"
 #include "hashmap.h"
 #include "malloc.h"
+#include "alert.h"
 
+#define BTLEJUICE_ALERT_NUMBER 1
 bool is_scanning = 0;
 
 void CONN_INIT_CALLBACK(btlejuice)(metrics_t * metrics) {
@@ -31,10 +33,9 @@ void SCAN_CALLBACK(btlejuice)(metrics_t * metrics) {
     }
 
     if(same) {
-      log(metrics->remote_device->address,6);
+      alert(BTLEJUICE_ALERT_NUMBER, metrics->remote_device->address,6);
       is_scanning = 0;
       stop_scan();
     }
-
   }
 }

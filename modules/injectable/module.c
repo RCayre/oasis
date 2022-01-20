@@ -3,6 +3,9 @@
 #include "callbacks.h"
 #include "hashmap.h"
 #include "malloc.h"
+#include "alert.h"
+
+#define INJECTABLE_ALERT_NUMBER 3
 
 #define WINDOW_SIZE 24
 #define HASHMAP_SIZE 16
@@ -70,10 +73,7 @@ uint32_t median(sorted_circular_buffer_t* sa) {
 }
 
 void CONN_DELETE_CALLBACK(injectable)(metrics_t *metrics) {
-  log(&injectable_hashmap, 4);
   hashmap_free(&injectable_hashmap);
-  log(&injectable_hashmap, 4);
-
 }
 
 void CONN_RX_CALLBACK(injectable)(metrics_t * metrics) {
@@ -138,7 +138,8 @@ void CONN_RX_CALLBACK(injectable)(metrics_t * metrics) {
 
 
     if (absolute_error <= THRESHOLD && absolute_error > 0) {
-      log(&absolute_error,4);
+      // Raise an alert
+      alert(INJECTABLE_ALERT_NUMBER,(uint8_t*)&metrics->current_connection->access_address, 4);
     }
   }
 

@@ -145,7 +145,7 @@ void send_hci_event(uint8_t opcode, void * content, uint32_t size) {
 }
 
 void run_hci_command(uint16_t opcode, uint8_t * buffer, uint8_t size) {
-  uint8_t * param = (uint8_t *) malloc(size + 11);
+  uint8_t param[size + 11];
   // Set first 11 bytes to 0
   for(uint8_t i = 0; i < 12; i++) {
   param[i] = 0;

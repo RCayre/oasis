@@ -3,6 +3,15 @@
 
 #include "types.h"
 
+typedef struct block {
+  uint16_t size;
+  uint8_t free;
+  #ifdef ALIGNED_MALLOC
+    uint8_t pad;
+  #endif
+  struct block * next;
+} block_t;
+
 /**
  * @brief Allocates memory
  * @param size  size in bytes

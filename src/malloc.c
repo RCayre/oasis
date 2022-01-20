@@ -2,13 +2,6 @@
 #include "wrapper.h"
 
 
-typedef struct block {
-  uint16_t size;
-  uint8_t free;
-  uint8_t pad;
-  struct block * next;
-} block_t;
-
 // Memory region to be used for allocating data
 __attribute__((section(".bss.memory")))
 uint8_t memory[HEAP_SIZE];
@@ -69,11 +62,10 @@ uint8_t merge_if_possible(block_t * b, uint16_t size) {
     return 0;
   }
 }
-int weird = 0;
 
 void * malloc(uint16_t size) {
   #ifdef ALIGNED_MALLOC
-  while ((size % 4) != 0) size++;
+    while ((size % 4) != 0) size++;
   #endif
   // Initialize the memory if new
   if(blocks == NULL) {
@@ -129,7 +121,6 @@ void * malloc(uint16_t size) {
       b = b->next;
     }
   }
-  if (((uint32_t)ret % 4) != 0) weird = 1;
   return ret;
 }
 

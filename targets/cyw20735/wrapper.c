@@ -100,6 +100,7 @@ uint8_t get_channel() {
         return 37+*channel;
     }
     #endif
+
     #ifdef CONNECTION_ENABLED
     if (current_gap_role == GAP_ROLE_CENTRAL || current_gap_role == GAP_ROLE_PERIPHERAL) {
         return *(uint8_t *)(connection_structure + CHANNEL_OFFSET);

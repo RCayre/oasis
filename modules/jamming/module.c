@@ -5,7 +5,7 @@
 #include "malloc.h"
 #include "alert.h"
 
-#define JAMMING_ALERT_NUMBER 4
+#define JAMMING_ALERT_NUMBER 5
 #define DETECTION_INTERVAL 5
 
 uint32_t interval;

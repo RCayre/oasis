@@ -5,7 +5,7 @@
 #include "malloc.h"
 #include "alert.h"
 
-#define INJECTABLE_ALERT_NUMBER 3
+#define INJECTABLE_ALERT_NUMBER 4
 
 #define WINDOW_SIZE 24
 #define HASHMAP_SIZE 16
@@ -73,7 +73,7 @@ uint32_t median(sorted_circular_buffer_t* sa) {
 }
 
 void CONN_DELETE_CALLBACK(injectable)(metrics_t *metrics) {
-  hashmap_free(&injectable_hashmap);
+  hashmap_delete(injectable_hashmap,  (uint8_t*)&metrics->current_connection->access_address);
 }
 
 void CONN_RX_CALLBACK(injectable)(metrics_t * metrics) {

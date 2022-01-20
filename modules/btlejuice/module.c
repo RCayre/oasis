@@ -5,7 +5,7 @@
 #include "malloc.h"
 #include "alert.h"
 
-#define BTLEJUICE_ALERT_NUMBER 1
+#define BTLEJUICE_ALERT_NUMBER 2
 bool is_scanning = 0;
 
 void CONN_INIT_CALLBACK(btlejuice)(metrics_t * metrics) {

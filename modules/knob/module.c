@@ -5,7 +5,7 @@
 #include "malloc.h"
 #include "alert.h"
 
-#define KNOB_ALERT_NUMBER 5
+#define KNOB_ALERT_NUMBER 6
 
 void CONN_RX_CALLBACK(knob)(metrics_t * metrics) {
   // If the received packet is a pairing request with a low entropy value

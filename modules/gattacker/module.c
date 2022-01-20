@@ -5,7 +5,7 @@
 #include "hashmap.h"
 #include "malloc.h"
 
-#define GATTACKER_ALERT_NUMBER 2
+#define GATTACKER_ALERT_NUMBER 3
 
 #define MAX_ADV_DELAY 10000
 

@@ -248,7 +248,7 @@ void on_conn_rx(void * ptr) {
 
 void on_conn_delete(void * ptr) {
     connected = 0;
-    process_conn_delete();
     connection_structure = ptr;
+    process_conn_delete();
 }
 #endif

@@ -117,6 +117,17 @@ void process_conn_rx(bool adapt_timestamp) {
 }
 
 void process_conn_delete() {
+
+	connection_t* current_connection = metrics.current_connection;
+
+	copy_channel_map(current_connection->channel_map);
+	current_connection->hop_interval = get_hop_interval();
+	copy_access_addr(&current_connection->access_address);
+	current_connection->crc_init = get_crc_init();
+	current_connection->tx_counter = 0;
+	current_connection->rx_counter = 0;
+	current_connection->packets_lost_counter = 0;
+
 	for(int i = 0; i < conn_delete_callbacks_size; i++) {
 		conn_delete_callbacks[i](&metrics);
 	}

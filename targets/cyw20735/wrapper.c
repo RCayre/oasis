@@ -227,6 +227,10 @@ void on_conn_rx_header() {
     process_conn_rx_header();
 }
 
+void on_conn_tx() {
+  process_conn_tx();
+}
+
 void on_conn_rx(void * ptr) {
     connection_structure = ptr;
     current_gap_role = (is_slave() ? GAP_ROLE_PERIPHERAL : GAP_ROLE_CENTRAL);

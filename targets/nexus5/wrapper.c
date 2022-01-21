@@ -212,6 +212,11 @@ void on_scan_rx() {
 #ifdef CONNECTION_ENABLED
 
 // Connection-related hooks
+
+void on_conn_tx() {
+  process_conn_tx();
+}
+
 void on_conn_rx_header() {
     process_conn_rx_header();
 }

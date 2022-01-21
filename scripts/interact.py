@@ -152,14 +152,17 @@ elif command == "connect":
     addressBytes = bytes.fromhex(address.replace(":",""))[::-1]
     interface = getInterface()
     interface.connect()
-    interface.listenSpecificEvent(0x3e)
+    interface.listenSpecificHciEvent(0x3e)
     if interface.sendHciCommand(0x200D,b"\x60\x00\x30\x00\x00" + (b"\x00" if addressType == "public" else b"\x01") + addressBytes + b"\x01\x18\x00\x28\x00\x00\x00\xd0\x07\x00\x00\x00\x00"): # start connection
         print("Start Connection OK")
-        event = interface.waitSpecificEvent()
-        if event[0] == 0x0a or event[0] == 0x01: # LE Enhanced Connection Complete or LE Connection Complete
+        event = interface.waitSpecificHciEvent(timeout=3)
+        if event is not None and (event[0] == 0x0a or event[0] == 0x01): # LE Enhanced Connection Complete or LE Connection Complete
             success = event[1] == 0x00
             handle = struct.unpack("H",event[2:4])[0]
             print("Connection established - handle = "+str(handle) if success else "Connection failed")
+        else:
+            print("Connection failed")
+
     interface.disconnect()
 
 elif command == "disconnect":

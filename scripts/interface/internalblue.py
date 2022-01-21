@@ -73,16 +73,17 @@ class InternalblueInterface(Interface):
             return answer[0] == 0
         return False
 
-    def listenSpecificEvent(self,opcode):
+    def listenSpecificHciEvent(self,opcode):
         self.internalblue.registerHciCallback(self.receiveHciCallback)
         self.waiting = opcode
         self.receivedEvent = None
 
-    def waitSpecificEvent(self):
-        while self.receivedEvent is None:
+    def waitSpecificHciEvent(self,timeout=None):
+        maxTime = time.time() + timeout
+        while self.receivedEvent is None and (timeout is None or time.time() <= maxTime):
             time.sleep(0.1)
         event = self.receivedEvent
-        self.receivedEvent
+        self.receivedEvent = None
         return event
 
     def disconnect(self):

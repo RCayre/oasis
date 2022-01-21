@@ -42,6 +42,7 @@ void btlejack_detection(metrics_t * metrics, int type) {
 
 		if(!data->is_init) {
 			data->is_init = 1;
+      return;
 		}
 
 		if ((type == TYPE_RX_PACKET && !metrics->current_packet->valid) || metrics->current_connection->packets_lost_counter > 0) {

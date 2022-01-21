@@ -1,6 +1,6 @@
 from utils import patch_parser,conf_parser,test
 from interface import openocd,internalblue
-import sys,time
+import sys,time,struct
 
 if len(sys.argv) < 3:
     print("Usage: "+sys.argv[0]+" <target> <command>")
@@ -152,8 +152,28 @@ elif command == "connect":
     addressBytes = bytes.fromhex(address.replace(":",""))[::-1]
     interface = getInterface()
     interface.connect()
-
-    if interface.sendHciCommand(0x200D,b"\x60\x00\x30\x00\x00" + (b"\x00" if addressType == "public" else 0x01) + addressBytes + b"\x01\x18\x00\x28\x00\x00\x00\xd0\x07\x00\x00\x00\x00"): # start connection
+    interface.listenSpecificEvent(0x3e)
+    if interface.sendHciCommand(0x200D,b"\x60\x00\x30\x00\x00" + (b"\x00" if addressType == "public" else b"\x01") + addressBytes + b"\x01\x18\x00\x28\x00\x00\x00\xd0\x07\x00\x00\x00\x00"): # start connection
         print("Start Connection OK")
+        event = interface.waitSpecificEvent()
+        if event[0] == 0x0a or event[0] == 0x01: # LE Enhanced Connection Complete or LE Connection Complete
+            success = event[1] == 0x00
+            handle = struct.unpack("H",event[2:4])[0]
+            print("Connection established - handle = "+str(handle) if success else "Connection failed")
     interface.disconnect()
-    # TODO : find a way to identify the handler to be able to use HCI_Command_Hdr()/HCI_Cmd_Disconnect(handle=handle)
+
+elif command == "disconnect":
+    if len(sys.argv) < 4:
+        print("Please provide the connection handle.")
+        exit(2)
+    if len(sys.argv) == 4:
+        if "0x" in sys.argv[3]:
+            handle = int(sys.argv[3],16)
+        else:
+            handle = int(sys.argv[3])
+
+        interface = getInterface()
+        interface.connect()
+        if interface.sendHciCommand(0x406,struct.pack("H",handle)+b"\x13"):
+            print("Stop connection OK")
+        interface.disconnect()

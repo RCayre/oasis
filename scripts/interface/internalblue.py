@@ -6,6 +6,7 @@ from pwnlib.asm import disasm
 from pwnlib import context
 from queue import Queue
 from utils import exec
+import time
 
 class InternalblueInterface(Interface):
     def getCompatibleHCIBoards(self):
@@ -43,6 +44,9 @@ class InternalblueInterface(Interface):
             exit(1)
 
     def __init__(self, target,interface=None, memoryZones=None):
+        self.waiting = None
+        self.receivedEvent = None
+
         if target is None: # partial instantiation to find memory zone during target generation
             self.memoryZones = memoryZones
             self.interface = interface.upper()
@@ -66,9 +70,20 @@ class InternalblueInterface(Interface):
         answer = self.internalblue.sendHciCommand(opcode,data)
         if isinstance(answer,bytearray):
             answer = bytes(answer)
-            return answer[-1] == 0
+            return answer[0] == 0
         return False
 
+    def listenSpecificEvent(self,opcode):
+        self.internalblue.registerHciCallback(self.receiveHciCallback)
+        self.waiting = opcode
+        self.receivedEvent = None
+
+    def waitSpecificEvent(self):
+        while self.receivedEvent is None:
+            time.sleep(0.1)
+        event = self.receivedEvent
+        self.receivedEvent
+        return event
 
     def disconnect(self):
         if self.connected:
@@ -88,6 +103,10 @@ class InternalblueInterface(Interface):
                 return
             if hcipkt.event_code == 0xFF:
                 self.eventQueue.put(hcipkt.data)
+            if hcipkt.event_code == self.waiting:
+                self.receivedEvent = bytes(hcipkt.data)
+                self.waiting = None
+
         except IndexError:
             pass
 

@@ -16,6 +16,7 @@ if len(sys.argv) < 3:
     print("Commands: stop-scan")
     print("Commands: connect <address>")
     print("Commands: connect <address> <address_type>")
+    print("Commands: disconnect <handle>")
 
     exit(1)
 

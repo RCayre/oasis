@@ -10,6 +10,9 @@ if controllerName == "BROADCOM":
     controller = controllers.BroadcomController(sys.argv[1])
 elif controllerName == "NRF51_SOFTDEVICE":
     controller = controllers.NRF51SoftDeviceController(sys.argv[1])
+elif controllerName == "NRF52_ZEPHYR":
+    controller = controllers.NRF52ZephyrController(sys.argv[1])
+
 #elif controllerName == "NRF52_SOFTDEVICE":
 #    controller = controllers.NRF52SoftDeviceController(sys.argv[1])
 else:
@@ -61,7 +64,12 @@ for parameter in sys.argv[4:]:
         findMemoryZone = parameter.split("=")[1].upper()
 
 if interfaceType is None:
-    interfaceType = "NRF51_JLINK_OPENOCD" if controllerName != "BROADCOM" else "INTERNALBLUE_HCI"
+    if controllerName == "BROADCOM":
+        interfaceType = "INTERNALBLUE_HCI"
+    elif controllerName == "NRF51_SOFTDEVICE":
+        interfaceType = "NRF51_JLINK_OPENOCD"
+    elif controllerName == "NRF52_ZEPHYR":
+        interfaceType = "NRF52_JLINK_OPENOCD"
 if codeSize is None:
     codeSize = 0x1500
 if dataSize is None:

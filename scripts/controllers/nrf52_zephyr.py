@@ -1,6 +1,6 @@
 from .controller import Controller
 from .analysis import hextools,patterns,disassembler,exceptions
-from .generators import patch_generator,linker_generator
+from .generators import patch_generator,linker_generator,wrapper_generator
 import struct
 
 class NRF52ZephyrController(Controller):
@@ -594,3 +594,7 @@ class NRF52ZephyrController(Controller):
         functionsOut += linker_generator.generateFunctions({k:v for k,v in self.functions.items() if k in self.firmwareInformations["used_functions"].keys()})
         linkerOut = linker_generator.generateMemoryZonesAndSections()
         return (functionsOut,linkerOut)
+
+    def generateWrapper(self):
+        wrapperOut = ""
+        wrapperOut += wrapper_generator.generateIncludes()+"\n"

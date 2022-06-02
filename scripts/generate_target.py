@@ -1,8 +1,8 @@
-import controllers
+import oasis.controllers
 import sys,os,os.path
 
 if len(sys.argv) < 4:
-    print("Usage: "+sys.argv[0]+" <firmware> <controller_type> <target_name> [--interface-type=INTERNALBLUE_ADB|INTERNALBLUE_ADB_SERIAL|INTERNALBLUE_HCI|NRF51_JLINK_OPENOCD|NRF51_STLINK_OPENOCD --code-size=CODE_SIZE --data-size=DATA_SIZE --code-start=CODE_START --data-start=DATA_START --heap-size --find-memory-zone=PATCHRAM|BLOC|AUTO --no-generation]")
+    print("Usage: "+sys.argv[0]+" <firmware> <controller_type> <target_name> [--interface-type=INTERNALBLUE_ADB|INTERNALBLUE_ADB_SERIAL|INTERNALBLUE_HCI|NRF51_JLINK_OPENOCD|NRF51_STLINK_OPENOCD|NRF52_NRFUTIL|NRF52_JLINK_OPENOCD  --code-size=CODE_SIZE --data-size=DATA_SIZE --code-start=CODE_START --data-start=DATA_START --heap-size --find-memory-zone=PATCHRAM|BLOC|AUTO --no-generation]")
     sys.exit(1)
 
 controllerName = sys.argv[2].upper()
@@ -12,9 +12,6 @@ elif controllerName == "NRF51_SOFTDEVICE":
     controller = controllers.NRF51SoftDeviceController(sys.argv[1])
 elif controllerName == "NRF52_ZEPHYR":
     controller = controllers.NRF52ZephyrController(sys.argv[1])
-
-#elif controllerName == "NRF52_SOFTDEVICE":
-#    controller = controllers.NRF52SoftDeviceController(sys.argv[1])
 else:
     controller = None
 
@@ -88,9 +85,13 @@ if controller is not None:
     controller.extractFunctions()
     controller.extractDatas()
 
+    controller.generateCapabilities()
     controller.showFunctions()
     print("-"*40)
     controller.showDatas()
     print("-"*40)
+    controller.showCapabilities()
+    print("-"*40)
+
     if not noGeneration:
         controller.generateTarget()

@@ -26,8 +26,10 @@ uint32_t get_crc_init();
 void copy_access_addr(uint32_t * dst);
 #endif
 
+#ifdef SCAN_ENABLED
 void start_scan();
 void stop_scan();
+#endif
 void log(uint8_t *buffer, uint8_t size);
 
 #endif

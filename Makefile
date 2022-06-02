@@ -48,7 +48,7 @@ ARCH := $(shell python3 $(SCRIPTS_DIR)/extract_target_info.py $(TARGET) architec
 
 CFLAGS += -nostdlib
 CFLAGS += -nostartfiles
-CFLAGS += -mthumb
+CFLAGS += $(shell python3 $(SCRIPTS_DIR)/extract_target_info.py $(TARGET) architecture_specific_gcc_flags)
 CFLAGS += -march=$(ARCH)
 CFLAGS += -ffreestanding
 CFLAGS += -ffunction-sections
@@ -56,6 +56,9 @@ CFLAGS += -fdata-sections
 CFLAGS += -O0
 CFLAGS += $(shell python3 $(SCRIPTS_DIR)/extract_target_info.py $(TARGET) gcc_flags)
 
+# Get tools compatible with the target
+CC := $(shell python3 $(SCRIPTS_DIR)/extract_target_info.py $(TARGET) compiler)
+NM := $(shell python3 $(SCRIPTS_DIR)/extract_target_info.py $(TARGET) nm)
 
 MODULES_SRC = $(foreach module,$(MODULES), $(MODULES_DIR)/$(module)/module.c)
 MODULES_OBJ = $(foreach module,$(MODULES), $(BUILD_DIR)/$(MODULES_DIR)/$(module)/module.o)
@@ -80,19 +83,19 @@ create_build_directory: $(MODULES_BUILD)
 	mkdir -p $(BUILD_DIR)
 
 $(BUILD_DIR)/$(MODULES_DIR)/%/module.o: $(MODULES_DIR)/%/module.c
-	arm-none-eabi-gcc $< $(CFLAGS) $(DEPENDENCIES_GCC_FLAGS) -c -o $@ -I $(INCLUDE_DIR)
+	$(CC) $< $(CFLAGS) $(DEPENDENCIES_GCC_FLAGS) -c -o $@ -I $(INCLUDE_DIR)
 
 $(BUILD_DIR)/callbacks.c: $(MODULES_OBJ)
-	python3 $(SCRIPTS_DIR)/generate_callbacks.py $(MODULES)
+	python3 $(SCRIPTS_DIR)/generate_callbacks.py $(ARCH) $(MODULES)
 
 $(BUILD_DIR)/trampolines.c: $(TARGET_DIR)/patch.conf
 	python3 $(SCRIPTS_DIR)/generate_trampolines.py $(TARGET) $(DEPENDENCIES)
 
 $(BUILD_DIR)/out.elf: $(BUILD_DIR)/callbacks.c $(MODULES_OBJ) $(SOURCE_DIR)/*.c $(SOURCE_DIR)/**/*.c $(BUILD_DIR)/trampolines.c $(TARGET_DIR)/wrapper.c
-	arm-none-eabi-gcc $(DEPENDENCIES_GCC_FLAGS) -DHEAP_SIZE=$(HEAP_SIZE) $(BUILD_DIR)/callbacks.c $(MODULES_OBJ) $(SOURCE_DIR)/*.c $(SOURCE_DIR)/**/*.c $(BUILD_DIR)/trampolines.c $(CFLAGS) $(TARGET_DIR)/wrapper.c -T $(TARGET_DIR)/linker.ld $(TARGET_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR) -Wl,"--defsym=CODE_START=$(CODE_START)" -Wl,"--defsym=CODE_SIZE=$(CODE_SIZE)" -Wl,"--defsym=DATA_START=$(DATA_START)"  -Wl,"--defsym=DATA_SIZE=$(DATA_SIZE)"
+	$(CC) $(DEPENDENCIES_GCC_FLAGS) -DHEAP_SIZE=$(HEAP_SIZE) $(BUILD_DIR)/callbacks.c $(MODULES_OBJ) $(SOURCE_DIR)/*.c $(SOURCE_DIR)/**/*.c $(BUILD_DIR)/trampolines.c $(CFLAGS) $(TARGET_DIR)/wrapper.c -T $(TARGET_DIR)/linker.ld $(TARGET_DIR)/functions.ld -o $(BUILD_DIR)/out.elf -I $(INCLUDE_DIR) -Wl,"--defsym=CODE_START=$(CODE_START)" -Wl,"--defsym=CODE_SIZE=$(CODE_SIZE)" -Wl,"--defsym=DATA_START=$(DATA_START)"  -Wl,"--defsym=DATA_SIZE=$(DATA_SIZE)"
 
 $(BUILD_DIR)/symbols.sym: $(BUILD_DIR)/out.elf
-	arm-none-eabi-nm -S -a $(BUILD_DIR)/out.elf | sort > $(BUILD_DIR)/symbols.sym
+	$(NM) -S -a $(BUILD_DIR)/out.elf | sort > $(BUILD_DIR)/symbols.sym
 
 $(BUILD_DIR)/patches.csv: $(BUILD_DIR)/symbols.sym
 	python3 $(SCRIPTS_DIR)/generate_patches.py $(TARGET) $(DEPENDENCIES)

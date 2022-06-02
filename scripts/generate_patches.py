@@ -1,5 +1,5 @@
 import sys
-from utils import builder
+from oasis.utils import builder
 
 if len(sys.argv) == 1:
     print("Usage: "+sys.argv[0]+" <target> <dependencies>")

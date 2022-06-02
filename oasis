@@ -1,0 +1,220 @@
+#!/usr/bin/env python3
+
+import sys
+sys.path.append("scripts")
+from oasis.utils import exec,display,conf_parser,modules
+from scripts.patch_target import patch
+from scripts.interact import interact
+
+def show_help():
+    print("{}Usage:{} oasis <cmd> [parameters]".format(display.Style.UNDERLINE, display.Style.END))
+    print("\t- {}targets:{} show all targets.".format(display.Style.BOLD, display.Style.END))
+    print("\t- {}set-target:{} select the default target.".format(display.Style.BOLD, display.Style.END))
+    print("\t- {}modules:{} show all modules.".format(display.Style.BOLD, display.Style.END))
+    print("\t- {}build:{} build the embedded software.".format(display.Style.BOLD, display.Style.END))
+    print("\t- {}clean:{} clean the build and temporary files.".format(display.Style.BOLD, display.Style.END))
+    print("\t- {}patch:{} patch the target with the embedded software.".format(display.Style.BOLD, display.Style.END))
+    print("\t- {}modules:{} shows the available modules.".format(display.Style.BOLD, display.Style.END))
+    print("\t- {}interact:{} interact with the target.".format(display.Style.BOLD, display.Style.END))
+    print()
+
+def show_help_targets():
+    print("{}Usage:{} oasis targets [filter]".format(display.Style.UNDERLINE, display.Style.END))
+    print("{}Description:{} This command show all available targets.".format(display.Style.UNDERLINE, display.Style.END))
+    print()
+    print("{}Example:{} oasis targets".format(display.Style.UNDERLINE, display.Style.END))
+    print("         oasis targets cyw")
+    print()
+
+def show_help_set_target():
+    print("{}Usage:{} oasis set-target <target>".format(display.Style.UNDERLINE, display.Style.END))
+    print("{}Description:{} This command allows to select the default target.".format(display.Style.UNDERLINE, display.Style.END))
+    print()
+    print("{}Example:{} oasis set-target cyw20735".format(display.Style.UNDERLINE, display.Style.END))
+    print()
+
+def show_help_build():
+    print("{}Usage:{} oasis build [<module 1> <module 2> ...]".format(display.Style.UNDERLINE, display.Style.END))
+    print("{}Description:{} This command builds the embedded software.".format(display.Style.UNDERLINE, display.Style.END))
+    print()
+    print("{}Example:{} oasis build btlejack btlejuice".format(display.Style.UNDERLINE, display.Style.END))
+    print()
+
+def show_help_clean():
+    print("{}Usage:{} oasis clean".format(display.Style.UNDERLINE, display.Style.END))
+    print("{}Description:{} This command cleans the build and temporary files.".format(display.Style.UNDERLINE, display.Style.END))
+    print()
+    print("{}Example:{} oasis clean".format(display.Style.UNDERLINE, display.Style.END))
+    print()
+
+def show_help_modules():
+    print("{}Usage:{} oasis modules [filter]".format(display.Style.UNDERLINE, display.Style.END))
+    print("{}Description:{} This command show all available modules.".format(display.Style.UNDERLINE, display.Style.END))
+    print()
+    print("{}Example:{} oasis modules".format(display.Style.UNDERLINE, display.Style.END))
+    print("         oasis modules btle")
+    print()
+
+def show_help_patch():
+    print("{}Usage:{} oasis patch".format(display.Style.UNDERLINE, display.Style.END))
+    print("{}Description:{} This command patches the target with the embedded software.".format(display.Style.UNDERLINE, display.Style.END))
+    print()
+    print("{}Example:{} oasis patch".format(display.Style.UNDERLINE, display.Style.END))
+    print()
+
+def show_help_interact():
+    print("{}Usage:{} oasis interact <subcommand> [parameters]".format(display.Style.UNDERLINE, display.Style.END))
+    print("{}Description:{} This command interacts with the target.".format(display.Style.UNDERLINE, display.Style.END))
+    print("{}Subcommands:{}".format(display.Style.UNDERLINE, display.Style.END))
+    print("\t read <symbol>")
+    print("\t read <address>")
+    print("\t read <address> <size>")
+    print("\t monitor <symbol>")
+    print("\t monitor <address>")
+    print("\t monitor <address> <size>")
+    print("\t log")
+    print("\t run-test")
+    print("\t start-scan")
+    print("\t stop-scan")
+    print("\t connect <address>")
+    print("\t connect <address> <address_type>")
+    print("\t disconnect <handle>")
+    print()
+    print("{}Example:{} oasis interact log".format(display.Style.UNDERLINE, display.Style.END))
+    print("         oasis interact read 0x20000000")
+    print()
+
+
+def build(target, modules=["test"]):
+    steps = {
+        "rm":{"used":False, "message":"Cleaning build files and temporary files...","type":"info"},
+        "mkdir":{"used":False, "message":"Creating build directories...","type":"info"},
+        "generate_callbacks.py":{"used":False, "message":"Generating callbacks...","type":"info"},
+        "generate_trampolines.py":{"used":False, "message":"Generating trampolines snippets...","type":"info"},
+        "-c -o": {"used":False, "message":"Building application: <app>", "app":lambda cmd:display.Style.BOLD+cmd.split()[1].split("/")[1]+display.Style.END,"type":"info", "repeat":True},
+        "out.elf": {"used":False,"message": "Building embedded software...", "type":"info"},
+        "nm":{"used":False, "message":"Extracting symbols...","type":"info"},
+        "generate_patches.py":{"used":False, "message":"Generating patches ...", "type":"info"},
+        "make: ***":{"used":False, "message":"An error occured during build, exiting.", "type":"error"}
+    }
+    for i in exec.execute(["make", "TARGET={}".format(target), "MODULES={}".format(" ".join(modules))]):
+        line = i.replace("\n", "")
+        for command in steps:
+            if command in line and not steps[command]["used"]:
+                message = steps[command]["message"]
+                if "<" in steps[command]["message"] and ">" in steps[command]["message"]:
+                    tag = steps[command]["message"].split("<")[1].split(">")[0]
+                    if tag in steps[command]:
+                        message = steps[command]["message"].replace("<"+tag+">", steps[command][tag](line))
+
+                display.print_msg(message, type=steps[command]["type"])
+                if "repeat" not in steps[command] or not steps[command]["repeat"]:
+                    steps[command]["used"] = True
+                if steps[command]["type"] == "error":
+                    sys.exit(1)
+        print("\t"+line)
+    display.print_success("Build process successful !")
+
+def clean():
+    display.print_info("Cleaning build files and temporary files...")
+    success = True
+    for i in exec.execute(["make","clean"]):
+        print("\t"+i.replace("\n",""))
+        if "make: ***" in i:
+            success = False
+    if success:
+        display.print_success("Cleaning successful.")
+    else:
+        display.print_error("Error during cleaning.")
+
+def set_target(target):
+    conf_parser.setDefaultTarget(target)
+
+if len(sys.argv) == 1:
+    show_help()
+else:
+    cmd = sys.argv[1]
+    target = conf_parser.getDefaultTarget()
+    help = False
+    for arg in sys.argv[1:]:
+        if "--target=" in arg:
+            target = arg.split("--target=")[1]
+            sys.argv.remove(arg)
+        if "-h" in arg or "--help" in arg:
+            help = True
+            sys.argv.remove(arg)
+
+    if cmd == "targets":
+        if help:
+            show_help_targets()
+            sys.exit(0)
+        if len(sys.argv) > 2:
+            filter = sys.argv[2]
+        else:
+            filter = ""
+            display.print_warning("You can provide a filter to display only a subset of targets.")
+
+        for dtarget in [t for t in conf_parser.getTargets() if filter in t]:
+            display.print_msg(dtarget,type=("success" if dtarget==target else "info"))
+            for k, v in conf_parser.getTargetConfiguration(dtarget).items():
+                print("\t{}{}{}: {}".format(display.Style.BOLD, k, display.Style.END, v))
+            print()
+    elif cmd == "set-target":
+        if help or len(sys.argv) <= 2:
+            show_help_set_target()
+            sys.exit(0)
+        else:
+            target = sys.argv[2]
+            if target in conf_parser.getTargets():
+                display.print_success("New default target selected: {}{}{}".format(display.Style.BOLD,target, display.Style.END))
+                conf_parser.setDefaultTarget(target)
+            else:
+                display.print_error("Please select an existing target.")
+
+    elif cmd == "build":
+        if help:
+            show_help_build()
+            sys.exit(0)
+        if len(sys.argv[2:]) > 0:
+            build(target,modules=sys.argv[2:])
+        else:
+            show_help_build()
+
+    elif cmd == "clean":
+        if help:
+            show_help_clean()
+            sys.exit(0)
+        clean()
+
+
+    elif cmd == "patch":
+        if help:
+            show_help_patch()
+            sys.exit(0)
+        patch(target)
+
+    elif cmd == "modules":
+        if help:
+            show_help_modules()
+            sys.exit(0)
+        if len(sys.argv) > 2:
+            filter = sys.argv[2]
+        else:
+            filter = ""
+            display.print_warning("You can provide a filter to display only a subset of modules.")
+
+
+        for name in [m for m in modules.getModules() if filter in m]:
+            display.print_info(name)
+            print("\t{}{}{}: {}".format(display.Style.BOLD, "Description", display.Style.END, modules.getModuleDescription(name)))
+            print("\t{}{}{}: {}".format(display.Style.BOLD, "Dependencies", display.Style.END, ",".join(modules.getModuleDependencies(name))))
+            print()
+
+    elif cmd == "interact":
+        if help or len(sys.argv) <= 2:
+            show_help_interact()
+            sys.exit(0)
+        interact(sys.argv[2].lower(),target, sys.argv[3:])
+
+    elif cmd == "list_arguments":
+        print(" ".join(["targets", "set-target", "build","clean"]))

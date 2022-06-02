@@ -1,0 +1,11 @@
+site_name: Oasis documentation
+theme: material
+nav:
+    - Introduction: index.md
+    - Installation: installation.md
+    - Framework architecture: presentation.md
+    - Oasis utility: commands.md
+    - Testing a target: testing.md
+    - Using the existing modules: existing_modules.md
+    - Writing your own module: module.md
+    - Adding a custom target: target.md

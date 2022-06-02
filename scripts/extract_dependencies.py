@@ -1,5 +1,5 @@
 import sys
-from utils import modules
+from oasis.utils import modules
 
 dependencies = []
 modulesList = sys.argv[1:]

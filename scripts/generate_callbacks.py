@@ -1,5 +1,5 @@
 import sys
-from utils import modules
+from oasis.utils import modules
 
 time_callbacks = []
 scan_callbacks = []
@@ -8,10 +8,11 @@ conn_delete_callbacks = []
 conn_rx_callbacks = []
 conn_tx_callbacks = []
 
-modulesList = sys.argv[1:]
+architecture = sys.argv[1]
+modulesList = sys.argv[2:]
 
 for moduleName in modulesList:
-    callbacks = modules.getModuleCallbacks(moduleName)
+    callbacks = modules.getModuleCallbacks(moduleName, architecture=architecture)
     if callbacks is None:
         print("Error: module "+moduleName+" not found.")
     else:

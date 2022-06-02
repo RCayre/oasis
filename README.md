@@ -19,7 +19,7 @@ This framework has been developed to facilitate the process of reverse engineeri
 The framework allows to generate a lightweight and modular embedded software, which is able to trigger specific actions when a specific event occurs (e.g. packet reception, connection initiation, ...), extract multiple low level characteristics (from the Link Layer traffic to CRC validity) or communicate through an HCI interface. It provides a very powerful way to manipulate the protocol at a very low level without requiring a deep understanding of the underlying architecture as the framework provides a standardized API to the user. These capabilities have initially been used to implement a set of embedded detection modules, allowing to detect multiple Bluetooth Low Energy attacks (e.g. KNOB, BTLEJack, GATTacker...) but it could also be used for other purposes, such as stacks fuzzing or wireless security analysis.
 
 ## Documentation
-The documentation can be found at https://homepages.laas.fr/rcayre/oasis-directory  
+The documentation can be found at https://homepages.laas.fr/rcayre/oasis-documentation
 
 ## License
 

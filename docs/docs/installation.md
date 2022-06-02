@@ -43,15 +43,15 @@ You can install the GNU ARM Embedded Toolchain easily from your standard package
 
 * **Ubuntu-based distributions:**
 
-`sudo apt install binutils-arm-linux-gnueabi`
+`sudo apt install binutils-arm-none-eabi gcc-arm-none-eabi`
 
 * **Fedora distribution:**
 
-`sudo dnf install arm-none-eabi-binutils-cs`
+`sudo dnf install arm-none-eabi-binutils-cs arm-none-eabi-gcc-cs`
 
 * **ARCH-based distributions:**
 
-`sudo pacman -S arm-none-eabi-binutils`
+`sudo pacman -S arm-none-eabi-binutils arm-none-eabi-gcc`
 
 ### Documentation (optional)
 If you want to build the documentation by yourself, install mkdocs and mkdocs-material:

@@ -81,6 +81,7 @@ $(MODULES_BUILD):
 
 create_build_directory: $(MODULES_BUILD)
 	mkdir -p $(BUILD_DIR)
+	mkdir -p $(MAPS_DIR)
 
 $(BUILD_DIR)/$(MODULES_DIR)/%/module.o: $(MODULES_DIR)/%/module.c
 	$(CC) $< $(CFLAGS) $(DEPENDENCIES_GCC_FLAGS) -c -o $@ -I $(INCLUDE_DIR)

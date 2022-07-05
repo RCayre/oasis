@@ -3,12 +3,14 @@
 #include "metrics.h"
 #include "hashmap.h"
 #include "malloc.h"
+#include "timing.h"
 
 #ifdef SCAN_ENABLED
 
 #define TIMESTAMP_HASHMAP_SIZE 16
 #define TIMESTAMP_HASHMAP_TIMEOUT 5000000
 
+extern timing_measures_t timing_measures;
 extern metrics_t metrics;
 
 extern uint8_t scan_callbacks_size;
@@ -31,6 +33,7 @@ void process_scan_rx_header() {
 uint32_t frame_interval = 0;
 
 void process_scan_rx() {
+    timing_measures.scan_timestamp_start = now();
     // TODO: add gap role to remote device
     // TODO: add address to remote device (from connection ?)
 
@@ -73,8 +76,11 @@ void process_scan_rx() {
         }
       }
     }
+    timing_measures.scan_timestamp_callbacks = now();
     for(int i = 0; i < scan_callbacks_size; i++) {
       scan_callbacks[i](&metrics);
     }
+    timing_measures.scan_timestamp_end = now();
+    report_timestamps(SCAN_EVENT);
 }
 #endif

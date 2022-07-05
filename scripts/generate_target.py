@@ -1,4 +1,4 @@
-import oasis.controllers
+import oasis.controllers as controllers
 import sys,os,os.path
 
 if len(sys.argv) < 4:

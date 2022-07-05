@@ -2,7 +2,7 @@ import os, os.path
 import shutil
 
 def generateTarget(firmwarePath, fileType,  name, configuration, wrapper, mainLinkerScript, functionsLinkerScript,patches):
-    targetDirectory =  os.path.abspath(os.path.dirname(__file__)+"/../../../targets/"+name)
+    targetDirectory =  os.path.abspath(os.path.dirname(__file__)+"/../../../../targets/"+name)
     if not os.path.exists(targetDirectory):
         os.mkdir(targetDirectory)
         shutil.copyfile(firmwarePath,targetDirectory+"/firmware."+fileType)

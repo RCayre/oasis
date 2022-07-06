@@ -1,4 +1,4 @@
-from oasis.utils import patch_parser,conf_parser,test
+from oasis.utils import patch_parser,conf_parser,dissectors
 from oasis.interface import openocd,internalblue,nrfutil
 import sys,time,struct
 
@@ -53,7 +53,8 @@ def interact(command, target, params=[]):
         sys.stderr.flush()
         try:
             for log in interface.log():
-                print("<"+target+"> ["+str(time.time())+"] "+log.hex())
+                msg = dissectors.parse_log_message(log)
+                print("<"+target+"> ["+str(time.time())+"] "+msg)
                 sys.stdout.flush()
                 sys.stderr.flush()
 
@@ -61,21 +62,9 @@ def interact(command, target, params=[]):
             interface.disconnect()
             exit(0)
 
-    elif command == "run-test":
-        interface = getInterface(target)
-        if not interface.checkSupport("LOG"):
-            print("Interface does not support logging.")
-            exit(1)
-        interface.connect()
-        try:
-            for log in interface.log():
-                msg = test.parse_test_message(log)
-                if msg is not None:
-                    test.show_test_message(msg)
         except KeyboardInterrupt:
             interface.disconnect()
             exit(0)
-
 
     elif command == "read" or command == "monitor":
         if len(params) < 1:
@@ -200,7 +189,6 @@ if __name__ == "__main__":
         print("Commands: monitor <address>")
         print("Commands: monitor <address> <size>")
         print("Commands: log")
-        print("Commands: run-test")
         print("Commands: start-scan")
         print("Commands: stop-scan")
         print("Commands: connect <address>")

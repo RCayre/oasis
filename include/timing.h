@@ -2,6 +2,8 @@
 #define TIMING_H
 
 #include "types.h"
+#include "messages.h"
+#include "wrapper.h"
 
 #define SCAN_EVENT          0
 #define TIME_EVENT          1
@@ -9,6 +11,7 @@
 #define CONN_RX_EVENT       3
 #define CONN_INIT_EVENT     4
 #define CONN_DELETE_EVENT   5
+
 #define event_type_t uint8_t
 
 typedef struct timing_measures {

@@ -4,6 +4,7 @@
 #include "packet.h"
 #include "hashmap.h"
 #include "malloc.h"
+#include "alert.h"
 
 #define GATTACKER_ALERT_NUMBER 3
 
@@ -116,7 +117,7 @@ void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
       if(min < data->threshold) {
         // If we go below the threshold
         data->under_attack = 1;
-        log(metrics->remote_device->address,6);
+        alert(GATTACKER_ALERT_NUMBER, metrics->remote_device->address,6);
       } else if(data->under_attack) {
         // If we were under attack and we go above the threshold
         data->under_attack = 0;

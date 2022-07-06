@@ -1,5 +1,4 @@
 #include "timing.h"
-#include "wrapper.h"
 
 timing_measures_t timing_measures;
 
@@ -38,10 +37,11 @@ void report_timestamps(event_type_t type) {
     end = timing_measures.time_timestamp_end;
     callbacks = timing_measures.time_timestamp_callbacks;
   }
-  uint8_t timestamp_buffer[1+3*4];
-  timestamp_buffer[0] = type;
-  memcpy(&timestamp_buffer[1],&start, 4);
-  memcpy(&timestamp_buffer[5],&callbacks, 4);
-  memcpy(&timestamp_buffer[9],&end, 4);
-  log(timestamp_buffer, 1+3*4);
+  uint8_t timestamp_buffer[2+3*4];
+  timestamp_buffer[0] = MESSAGE_TYPE_TIMING;
+  timestamp_buffer[1] = type;
+  memcpy(&timestamp_buffer[2],&start, 4);
+  memcpy(&timestamp_buffer[6],&callbacks, 4);
+  memcpy(&timestamp_buffer[10],&end, 4);
+  log(timestamp_buffer, 2+3*4);
 }

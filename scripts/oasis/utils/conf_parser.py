@@ -77,6 +77,9 @@ def getNrfutil():
 def getDefaultTarget():
     return getMainConfiguration()["default_target"]
 
+def getTimingMeasurement():
+    return getMainConfiguration()["timing_measurement"] == "yes"
+
 def getTargets():
     targetDirectory = os.path.abspath(os.path.dirname(__file__)+"/../../../targets/")
     return os.listdir(targetDirectory)

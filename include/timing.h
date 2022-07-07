@@ -1,6 +1,8 @@
 #ifndef TIMING_H
 #define TIMING_H
 
+#ifdef TIMING_MEASUREMENT
+
 #include "types.h"
 #include "messages.h"
 #include "wrapper.h"
@@ -41,5 +43,6 @@ typedef struct timing_measures {
 } timing_measures_t;
 
 void report_timestamps(event_type_t type);
+#endif
 
 #endif

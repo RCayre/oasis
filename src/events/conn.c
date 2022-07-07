@@ -9,7 +9,10 @@
 #ifdef CONNECTION_ENABLED
 #define TIMESTAMP_HASHMAP_SIZE 4
 
+#ifdef TIMING_MEASUREMENT
 extern timing_measures_t timing_measures;
+#endif
+
 extern metrics_t metrics;
 
 extern uint8_t conn_init_callbacks_size;
@@ -25,7 +28,9 @@ extern callback_t conn_delete_callbacks[];
 static hashmap_t * conn_timestamp_hashmap = NULL;
 
 void process_conn_init() {
+	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_init_timestamp_start = now();
+	#endif
 
 	connection_t* current_connection = metrics.current_connection;
 
@@ -37,17 +42,25 @@ void process_conn_init() {
 	current_connection->rx_counter = 0;
 	current_connection->packets_lost_counter = 0;
 
+	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_init_timestamp_callbacks = now();
+	#endif
+
 	for(int i = 0; i < conn_init_callbacks_size; i++) {
     conn_init_callbacks[i](&metrics);
   }
+
+	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_init_timestamp_end = now();
 	report_timestamps(CONN_INIT_EVENT);
+	#endif
 }
 
 
 void process_conn_tx() {
+	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_tx_timestamp_start = now();
+	#endif
 
 	connection_t* current_connection = metrics.current_connection;
 
@@ -57,14 +70,20 @@ void process_conn_tx() {
 	current_packet->channel = get_channel();
 	current_packet->timestamp =  get_timestamp_in_us();
 
+	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_tx_timestamp_callbacks = now();
+	#endif
+
 	for(int i = 0; i < conn_tx_callbacks_size; i++) {
     conn_tx_callbacks[i](&metrics);
   }
 
 	current_connection->packets_lost_counter++;
+
+	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_tx_timestamp_end = now();
 	report_timestamps(CONN_TX_EVENT);
+	#endif
 }
 
 void process_conn_rx_header() {
@@ -74,7 +93,9 @@ void process_conn_rx_header() {
 }
 
 void process_conn_rx(bool adapt_timestamp) {
+	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_rx_timestamp_start = now();
+	#endif
 
 	connection_t* current_connection = metrics.current_connection;
 	current_connection->packets_lost_counter = 0;
@@ -122,16 +143,24 @@ void process_conn_rx(bool adapt_timestamp) {
 			*(uint32_t *)previous_timestamp = current_packet->timestamp;
 		}
 	}
+	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_rx_timestamp_callbacks = now();
+	#endif
+
 	for(int i = 0; i < conn_rx_callbacks_size; i++) {
     conn_rx_callbacks[i](&metrics);
   }
+
+	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_rx_timestamp_end = now();
 	report_timestamps(CONN_RX_EVENT);
+	#endif
 }
 
 void process_conn_delete() {
+	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_delete_timestamp_start = now();
+	#endif
 
 	connection_t* current_connection = metrics.current_connection;
 
@@ -143,13 +172,18 @@ void process_conn_delete() {
 	current_connection->rx_counter = 0;
 	current_connection->packets_lost_counter = 0;
 
+	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_delete_timestamp_callbacks = now();
+	#endif
 	for(int i = 0; i < conn_delete_callbacks_size; i++) {
 		conn_delete_callbacks[i](&metrics);
 	}
 	hashmap_delete(conn_timestamp_hashmap, (uint8_t*)&metrics.current_connection->access_address);
+
+	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_delete_timestamp_end = now();
 	report_timestamps(CONN_DELETE_EVENT);
+	#endif
 }
 
 #endif

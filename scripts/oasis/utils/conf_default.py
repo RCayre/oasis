@@ -9,5 +9,6 @@ default_configuration = {
     "arm_ld":"arm-none-eabi-ld",
     "arm_as":"arm-none-eabi-as",
     "arm_gcc_flags":"-mthumb",
-    "default_target":"cyw20735"
+    "default_target":"cyw20735",
+    "timing_measurement":"no"
 }

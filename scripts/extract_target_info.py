@@ -34,3 +34,11 @@ elif info in ("compiler", "assembler", "linker", "objdump", "objcopy", "nm", "ar
         print(conf_parser.getObjdump(architecture))
     elif info == "architecture_specific_gcc_flags":
         print(conf_parser.getArchitectureSpecificGccFlags(architecture))
+
+elif info == "debug_gcc_flags":
+    debug_flags = ""
+    if conf_parser.getTimingMeasurement():
+        debug_flags += "-DTIMING_MEASUREMENT"
+    else:
+        debug_flags += ""
+    print(debug_flags)

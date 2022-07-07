@@ -49,6 +49,7 @@ ARCH := $(shell python3 $(SCRIPTS_DIR)/extract_target_info.py $(TARGET) architec
 CFLAGS += -nostdlib
 CFLAGS += -nostartfiles
 CFLAGS += $(shell python3 $(SCRIPTS_DIR)/extract_target_info.py $(TARGET) architecture_specific_gcc_flags)
+CFLAGS += $(shell python3 $(SCRIPTS_DIR)/extract_target_info.py $(TARGET) debug_gcc_flags)
 CFLAGS += -march=$(ARCH)
 CFLAGS += -ffreestanding
 CFLAGS += -ffunction-sections

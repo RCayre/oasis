@@ -1,5 +1,6 @@
 #include "timing.h"
 
+#ifdef TIMING_MEASUREMENT
 timing_measures_t timing_measures;
 
 void report_timestamps(event_type_t type) {
@@ -45,3 +46,4 @@ void report_timestamps(event_type_t type) {
   memcpy(&timestamp_buffer[10],&end, 4);
   log(timestamp_buffer, 2+3*4);
 }
+#endif

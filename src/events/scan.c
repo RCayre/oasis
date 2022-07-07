@@ -10,7 +10,10 @@
 #define TIMESTAMP_HASHMAP_SIZE 16
 #define TIMESTAMP_HASHMAP_TIMEOUT 5000000
 
+#ifdef TIMING_MEASUREMENT
 extern timing_measures_t timing_measures;
+#endif
+
 extern metrics_t metrics;
 
 extern uint8_t scan_callbacks_size;
@@ -33,9 +36,11 @@ void process_scan_rx_header() {
 uint32_t frame_interval = 0;
 
 void process_scan_rx() {
-    timing_measures.scan_timestamp_start = now();
     // TODO: add gap role to remote device
     // TODO: add address to remote device (from connection ?)
+    #ifdef TIMING_MEASUREMENT
+    timing_measures.scan_timestamp_start = now();
+    #endif
 
     local_device_t* local_device = metrics.local_device;
     copy_own_bd_addr(local_device->address);
@@ -76,11 +81,16 @@ void process_scan_rx() {
         }
       }
     }
+    #ifdef TIMING_MEASUREMENT
     timing_measures.scan_timestamp_callbacks = now();
+    #endif
     for(int i = 0; i < scan_callbacks_size; i++) {
       scan_callbacks[i](&metrics);
     }
+
+    #ifdef TIMING_MEASUREMENT
     timing_measures.scan_timestamp_end = now();
     report_timestamps(SCAN_EVENT);
+    #endif
 }
 #endif

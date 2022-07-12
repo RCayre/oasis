@@ -72,7 +72,7 @@ def show_help_interact():
     print("\t monitor <symbol>")
     print("\t monitor <address>")
     print("\t monitor <address> <size>")
-    print("\t log")
+    print("\t log [filename]")
     print("\t start-scan")
     print("\t stop-scan")
     print("\t connect <address>")

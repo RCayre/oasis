@@ -54,7 +54,11 @@ def interact(command, target, params=[]):
         try:
             for log in interface.log():
                 msg = dissectors.parse_log_message(log)
-                print("<"+target+"> ["+str(time.time())+"] "+msg)
+                log_line = "<"+target+"> ["+str(time.time())+"] "+msg
+                print(log_line)
+                if len(params) > 0:
+                    with open(params[0], "a") as f:
+                        f.write(log_line+"\n")
                 sys.stdout.flush()
                 sys.stderr.flush()
 
@@ -188,7 +192,7 @@ if __name__ == "__main__":
         print("Commands: monitor <symbol>")
         print("Commands: monitor <address>")
         print("Commands: monitor <address> <size>")
-        print("Commands: log")
+        print("Commands: log [filename]")
         print("Commands: start-scan")
         print("Commands: stop-scan")
         print("Commands: connect <address>")

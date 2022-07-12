@@ -9,15 +9,13 @@ timestamps_message_codes = {
   5 : "CONN_DELETE_EVENT"
 }
 def parse_timestamps_message(message):
-    if len(message) != 1+4*3:
+    if len(message) != 1+4*2:
       return None
     else:
       message_type = timestamps_message_codes[message[0]]
-      start, callbacks, end = struct.unpack("III", message[1:])
-      return {"type":message_type, "start":start, "end":end, "callbacks":callbacks}
+      event_delay, modules_delay = struct.unpack("II", message[1:])
+      return {"type":message_type, "event_delay":event_delay, "modules_delay":modules_delay}
 
 def format_timestamps_message(message):
-    ed = message["end"] - message["start"]
-    md = message["end"] - message["callbacks"]
-    out = "TIMING => " + message["type"].lower() +" (start: {}, callbacks: {}, end: {}, event_duration: {}, module_duration: {})".format(message["start"], message["callbacks"], message["end"],ed, md)
+    out = "TIMING => " + message["type"].lower() +" (event_duration: {}, module_duration: {})".format(message["event_delay"], message["modules_delay"])
     return out

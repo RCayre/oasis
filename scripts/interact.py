@@ -51,6 +51,9 @@ def interact(command, target, params=[]):
         interface.connect()
         sys.stdout.flush()
         sys.stderr.flush()
+        if len(params) > 0:
+            with open(params[0], "a") as f:
+                f.write("Log started !\n")
         try:
             for log in interface.log():
                 msg = dissectors.parse_log_message(log)

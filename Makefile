@@ -13,18 +13,20 @@ ifneq ($(MAKECMDGOALS),clean)
 # Checks the existence of the provided target
 SUPPORTED_TARGETS := $(shell ls $(TARGETS_DIR))
 
+# Check if the target needs attach operation before use
+SERIAL_TARGETS := $(shell ls $(TARGETS_DIR)/*/actions/attach | awk -F "/" '{print $2}')
+
 # if no target is provided, use the first one as default
 ifeq ($(TARGET),)
   TARGET := $(shell echo $(SUPPORTED_TARGETS) | awk '{print $$1}')
   $(warning No target specified, using $(TARGET) as default target.)
 endif
 
-
 ifeq ($(MAKECMDGOALS),attach)
-ifeq ($(TARGET),cyw20735)
-  CYW20735_TTY := $(shell python3 $(SCRIPTS_DIR)/detect_cyw20735_ttyUSB.py)
-else ifneq ($(TARGET),cyw20735)
-  $(error Attach is only necessary for target 'cyw20735')
+ifeq ($(filter $(TARGET), $(SERIAL_TARGETS)),)
+  SERIAL_PORT := $(shell python3 $(SCRIPTS_DIR)/detect_serial.py $(TARGET))
+else
+  $(error "Attach is only necessary for targets $(SERIAL_TARGETS).")
 endif
 endif
 
@@ -106,10 +108,7 @@ $(BUILD_DIR)/patches.csv: $(BUILD_DIR)/symbols.sym
 build: clean create_build_directory $(BUILD_DIR)/patches.csv
 
 attach:
-	sudo stty -F $(CYW20735_TTY) 3000000
-	sudo btattach -B $(CYW20735_TTY) &
-	sleep 1
-	sudo hciconfig | grep hci0 -n1 | grep BD | awk '{print $$3" "$$4}'
+	$(TARGET_DIR)/actions/attach $(SERIAL_PORT)
 
 patch:
 	python3 $(SCRIPTS_DIR)/patch_target.py $(TARGET)

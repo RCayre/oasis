@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if test $# -ne 1; then
+  echo "Usage: $0 <serial port>"
+  exit 1
+fi
+
+serial_port=$1
+stty -F $serial_port 3000000
+btattach -B $serial_port &

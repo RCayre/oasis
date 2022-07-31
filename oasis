@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys
+import sys,subprocess
 sys.path.append("scripts")
 from oasis.utils import exec,display,conf_parser,modules
 from scripts.patch_target import patch
@@ -10,6 +10,7 @@ def show_help():
     print("{}Usage:{} oasis <cmd> [parameters]".format(display.Style.UNDERLINE, display.Style.END))
     print("\t- {}targets:{} show all targets.".format(display.Style.BOLD, display.Style.END))
     print("\t- {}set-target:{} select the default target.".format(display.Style.BOLD, display.Style.END))
+    print("\t- {}attach:{} attach the target (if needed).".format(display.Style.BOLD, display.Style.END))
     print("\t- {}modules:{} show all modules.".format(display.Style.BOLD, display.Style.END))
     print("\t- {}build:{} build the embedded software.".format(display.Style.BOLD, display.Style.END))
     print("\t- {}clean:{} clean the build and temporary files.".format(display.Style.BOLD, display.Style.END))
@@ -24,6 +25,13 @@ def show_help_targets():
     print()
     print("{}Example:{} oasis targets".format(display.Style.UNDERLINE, display.Style.END))
     print("         oasis targets cyw")
+    print()
+
+def show_help_attach():
+    print("{}Usage:{} oasis attach".format(display.Style.UNDERLINE, display.Style.END))
+    print("{}Description:{} This command attach the target (only needed if HCI over UART).".format(display.Style.UNDERLINE, display.Style.END))
+    print()
+    print("{}Example:{} oasis attach".format(display.Style.UNDERLINE, display.Style.END))
     print()
 
 def show_help_set_target():
@@ -126,6 +134,15 @@ def clean():
     else:
         display.print_error("Error during cleaning.")
 
+def attach(target):
+    display.print_info("Attaching to target...")
+    success = True
+    subprocess.Popen(["make","TARGET={}".format(target), "attach"])
+    if success:
+        display.print_success("Target successfully attached.")
+    else:
+        display.print_error("Error during attaching.")
+
 def set_target(target):
     conf_parser.setDefaultTarget(target)
 
@@ -191,6 +208,13 @@ else:
             show_help_patch()
             sys.exit(0)
         patch(target)
+
+
+    elif cmd == "attach":
+        if help:
+            show_help_attach()
+            sys.exit(0)
+        attach(target)
 
     elif cmd == "modules":
         if help:

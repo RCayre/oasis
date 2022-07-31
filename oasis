@@ -81,6 +81,7 @@ def show_help_interact():
     print("\t monitor <address>")
     print("\t monitor <address> <size>")
     print("\t log [filename]")
+    print("\t wireshark [filename]")
     print("\t start-scan")
     print("\t stop-scan")
     print("\t connect <address>")

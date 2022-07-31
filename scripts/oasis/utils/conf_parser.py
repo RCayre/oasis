@@ -74,6 +74,9 @@ def getPython():
 def getNrfutil():
     return getMainConfiguration()["nrfutil"]
 
+def getWireshark():
+    return getMainConfiguration()["wireshark"]
+
 def getDefaultTarget():
     return getMainConfiguration()["default_target"]
 

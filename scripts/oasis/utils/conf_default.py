@@ -2,6 +2,7 @@ default_configuration = {
     "openocd":"openocd",
     "nrfutil":"nrfutil",
     "python3":"python3",
+    "wireshark":"wireshark",
     "arm_gcc":"arm-none-eabi-gcc",
     "arm_objcopy":"arm-none-eabi-objcopy",
     "arm_objdump":"arm-none-eabi-objdump",

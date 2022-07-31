@@ -1,5 +1,6 @@
-from oasis.utils import patch_parser,conf_parser,dissectors
+from oasis.utils import patch_parser,conf_parser,dissectors,wireshark
 from oasis.interface import openocd,internalblue,nrfutil
+from scapy.all import BTLE_ADV, BTLE_DATA, BTLE
 import sys,time,struct
 
 def getInterface(target):
@@ -62,6 +63,44 @@ def interact(command, target, params=[]):
                 if len(params) > 0:
                     with open(params[0], "a") as f:
                         f.write(log_line+"\n")
+                sys.stdout.flush()
+                sys.stderr.flush()
+
+        except KeyboardInterrupt:
+            interface.disconnect()
+            exit(0)
+
+        except KeyboardInterrupt:
+            interface.disconnect()
+            exit(0)
+
+    if command == "wireshark":
+        interface = getInterface(target)
+        if not interface.checkSupport("LOG"):
+            print("Interface does not support logging.")
+            exit(1)
+
+        interface.connect()
+        sys.stdout.flush()
+        sys.stderr.flush()
+        if len(params) > 0:
+            ws = wireshark.WiresharkStream(params[0])
+        else:
+            ws = wireshark.WiresharkStream()
+
+        try:
+            for log in interface.log():
+                access_address = 0x11223344 # fake access address if we miss the conn_init  event
+                msg = dissectors.parse_log_message(log,formatting=False)
+                if msg["type"] == "SCAN_RX":
+                    log_line = "<"+target+"> ["+str(time.time())+"] "+repr(BTLE_ADV(msg["packet"]))
+                    ws.write(BTLE()/BTLE_ADV(msg["packet"]))
+                elif msg["type"] == "CONN_RX":
+                    log_line = "<"+target+"> ["+str(time.time())+"] "+repr(BTLE_DATA(msg["packet"]))
+                    ws.write(BTLE(access_addr=access_address)/BTLE_DATA(msg["packet"]))
+                elif msg["type"] == "CONN_INIT":
+                    access_address = int(msg["access_address"],16)
+
                 sys.stdout.flush()
                 sys.stderr.flush()
 
@@ -196,6 +235,7 @@ if __name__ == "__main__":
         print("Commands: monitor <address>")
         print("Commands: monitor <address> <size>")
         print("Commands: log [filename]")
+        print("Commands: wireshark [filename]")
         print("Commands: start-scan")
         print("Commands: stop-scan")
         print("Commands: connect <address>")

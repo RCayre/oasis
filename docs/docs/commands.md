@@ -99,8 +99,8 @@ The available subcommands are:
 - **monitor <symbol\>**: display any value modification in memory of the provided symbol
 - **monitor <address\>**: display any value modification in memory of the provided address (4 bytes)
 - **monitor <address\> <size\>**: display any value modification in memory of the provided address (variable size)
-- **log**: display the log
-- **run-test**: run the test
+- **log [filename]**: display the log (and copy them in filename if provided) 
+- **wireshark [filename]**: monitor the link layer traffic with wireshark (and feed a pcap file if filename is provided)
 - **start-scan**: start a scan
 - **stop-scan**: stop a scan
 - **connect <address\>**: establish a connection with BD address (address type is public)

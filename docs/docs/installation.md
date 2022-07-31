@@ -8,6 +8,7 @@ First, you need to install the following dependencies:
 | Package                    | Recommended version      |
 |----------------------------|:------------------------:|
 | nrfutil                    |  6.1.3                   |
+| scapy                      |  2.4.5                   |
 | internalblue               |  latest                  |
 | openocd                    |  0.11.0                  |
 | GNU ARM Embedded Toolchain |  11.1.0                  |
@@ -17,6 +18,12 @@ First, you need to install the following dependencies:
 Installing nrfutil is straightforward with pip:
 
 `pip install nrfutil`
+
+### Scapy
+
+Installing scapy with pip is quite easy too:
+
+`pip install scapy`
 
 ### Internalblue
 Similarly, the following command will install internalblue on your system:

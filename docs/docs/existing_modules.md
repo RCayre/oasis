@@ -10,10 +10,6 @@ The following modules are available:
 * **Description:** Detection module detecting continuous jamming attack
 * **Dependencies:** SCAN
 
-### test
-*	**Description:** Test module allowing to check if every callbacks are working
-*	**Dependencies:** SCAN,CONNECTION
-
 ### gattacker
 *	**Description:** Detection module detecting GATTacker MiTM attack
 *	**Dependencies:** SCAN
@@ -32,6 +28,18 @@ The following modules are available:
 
 ### knob
 *	**Description:** Detection module detecting KNOB attack
+*	**Dependencies:** CONNECTION
+
+### monitor_time
+*	**Description:** Monitoring module allowing to receive timing events notification
+*	**Dependencies:**
+
+### monitor_scan
+*	**Description:** Monitoring module allowing to receive LL advertising packets
+*	**Dependencies:** SCAN
+
+### monitor_connection
+*	**Description:** Monitoring module allowing to receive LL connection packets
 *	**Dependencies:** CONNECTION
 
 ## Testing a module

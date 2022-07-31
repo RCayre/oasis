@@ -1,6 +1,6 @@
 # Testing the target
 
-You can easily check if the target instrumentation code is functional by patching the **test** module.
+You can easily check if the target instrumentation code is functional by patching the **monitor_scan**, **monitor_connection** and  **monitor_time** modules.
 
 ## Building the embedded software
 Let's assume you want to test the cyw20735 IoT Development Kit, which is implemented in *targets/cyw20735*. First, you need to select *cyw20735* as your default target using *oasis* utility:
@@ -11,32 +11,37 @@ $ ./oasis set-target cyw20735
 🟢 New default target selected: cyw20735
 ```
 
-Then, build the embedded software with the module **test**:
+Then, build the embedded software with the modules:
 
 ```bash
-$ ./oasis build test
+$ ./oasis build monitor_scan monitor_connection monitor_time
 
-🔵 Cleaning build files and temporary files...
- rm -rf internalblue*
- rm -rf btsnoop.log
- rm -rf build
-🔵 Creating build directories...
- mkdir -p  build/modules/test
- mkdir -p build
-🔵 Building application: test
- /usr/bin/arm-none-eabi-gcc modules/test/module.c -nostdlib -nostartfiles -mthumb -march=armv7-m -ffreestanding -ffunction-sections -fdata-sections -O0   -DSCAN_ENABLED  -DCONNECTION_ENABLED -c -o build/modules/test/module.o -I include
-🔵 Generating callbacks...
- python3 scripts/generate_callbacks.py armv7-m test
-🔵 Generating trampolines snippets...
- python3 scripts/generate_trampolines.py cyw20735 SCAN CONNECTION
-🔵 Building embedded software...
- /usr/bin/arm-none-eabi-gcc  -DSCAN_ENABLED  -DCONNECTION_ENABLED -DHEAP_SIZE=0x800 build/callbacks.c  build/modules/test/module.o src/*.c src/**/*.c build/trampolines.c -nostdlib -nostartfiles -mthumb -march=armv7-m -ffreestanding -ffunction-sections -fdata-sections -O0  targets/cyw20735/wrapper.c -T targets/cyw20735/linker.ld targets/cyw20735/functions.ld -o build/out.elf -I include -Wl,"--defsym=CODE_START=0x271770" -Wl,"--defsym=CODE_SIZE=0x2000" -Wl,"--defsym=DATA_START=0x273770"  -Wl,"--defsym=DATA_SIZE=0x1000"
-🔵 Extracting symbols...
- /usr/bin/arm-none-eabi-nm -S -a build/out.elf | sort > build/symbols.sym
-🔵 Generating patches ...
- python3 scripts/generate_patches.py cyw20735 CONNECTION SCAN
- cp build/patches.csv maps/cyw20735.csv
-🟢 Build process successful !
+ 🔵 Cleaning build files and temporary files...
+	rm -rf internalblue*
+	rm -rf btsnoop.log
+	rm -rf build
+ 🔵 Creating build directories...
+	mkdir -p  build/modules/monitor_scan  build/modules/monitor_connection  build/modules/monitor_time
+	mkdir -p build
+	mkdir -p maps
+ 🔵 Building application: monitor_scan
+	arm-none-eabi-gcc modules/monitor_scan/module.c -nostdlib -nostartfiles -mthumb -DTIMING_MEASUREMENT -march=armv7-m -ffreestanding -ffunction-sections -fdata-sections -O0   -DSCAN_ENABLED  -DCONNECTION_ENABLED -c -o build/modules/monitor_scan/module.o -I include
+ 🔵 Building application: monitor_connection
+	arm-none-eabi-gcc modules/monitor_connection/module.c -nostdlib -nostartfiles -mthumb -DTIMING_MEASUREMENT -march=armv7-m -ffreestanding -ffunction-sections -fdata-sections -O0   -DSCAN_ENABLED  -DCONNECTION_ENABLED -c -o build/modules/monitor_connection/module.o -I include
+ 🔵 Building application: monitor_time
+	arm-none-eabi-gcc modules/monitor_time/module.c -nostdlib -nostartfiles -mthumb -DTIMING_MEASUREMENT -march=armv7-m -ffreestanding -ffunction-sections -fdata-sections -O0   -DSCAN_ENABLED  -DCONNECTION_ENABLED -c -o build/modules/monitor_time/module.o -I include
+ 🔵 Generating callbacks...
+	python3 scripts/generate_callbacks.py armv7-m monitor_scan monitor_connection monitor_time
+ 🔵 Generating trampolines snippets...
+	python3 scripts/generate_trampolines.py cyw20735 SCAN  CONNECTION
+ 🔵 Building embedded software...
+	arm-none-eabi-gcc  -DSCAN_ENABLED  -DCONNECTION_ENABLED -DHEAP_SIZE=0x800 build/callbacks.c  build/modules/monitor_scan/module.o  build/modules/monitor_connection/module.o  build/modules/monitor_time/module.o src/*.c src/**/*.c build/trampolines.c -nostdlib -nostartfiles -mthumb -DTIMING_MEASUREMENT -march=armv7-m -ffreestanding -ffunction-sections -fdata-sections -O0  targets/cyw20735/wrapper.c -T targets/cyw20735/linker.ld targets/cyw20735/functions.ld -o build/out.elf -I include -Wl,"--defsym=CODE_START=0x271770" -Wl,"--defsym=CODE_SIZE=0x2000" -Wl,"--defsym=DATA_START=0x273770"  -Wl,"--defsym=DATA_SIZE=0x1000"
+ 🔵 Extracting symbols...
+	arm-none-eabi-nm -S -a build/out.elf | sort > build/symbols.sym
+ 🔵 Generating patches ...
+	python3 scripts/generate_patches.py cyw20735 SCAN  CONNECTION
+	cp build/patches.csv maps/cyw20735.csv
+ 🟢 Build process successful !
 ```
 Once generated, the embedded software can be found under *build/patches.csv*.
 
@@ -64,7 +69,7 @@ Set Scan Enable OK
 
 Then, you can run the following command:
 ```bash
-$ sudo ./oasis interact run-test
+$ sudo ./oasis interact log
 
 Interface connected !
 TIME (timestamp: 60002417, address: 20:73:5b:**:**:**, gap_role: ADVERTISER)
@@ -98,10 +103,10 @@ Interface connected !
 ```
 
 
-And by running **run-test** you should get an output similar to the following one:
+And by running **log** you should get an output similar to the following one:
 
 ```bash
-$ sudo ./oasis interact run-test
+$ sudo ./oasis interact log
 
 Interface connected !
 TIME (timestamp: 30081995, address: 20:73:5b:**:**:**, gap_role: SCANNER)

@@ -1,4 +1,3 @@
-from oasis.controllers.analysis import thumb
 from oasis.controllers.generators import target_generator
 
 class Controller:
@@ -17,7 +16,6 @@ class Controller:
         self.rootDirectory = None
         self.memoryZones = {}
         self.interfaceType = None
-        self.instructions  = thumb.disassemble(firmware)
 
     def setParameters(self, name, interfaceType, codeSize,codeStart,dataSize,dataStart,heapSize, findMemoryZone):
         self.name = name

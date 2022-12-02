@@ -12,6 +12,8 @@ elif controllerName == "NRF51_SOFTDEVICE":
     controller = controllers.NRF51SoftDeviceController(sys.argv[1])
 elif controllerName == "NRF52_ZEPHYR":
     controller = controllers.NRF52ZephyrController(sys.argv[1])
+elif controllerName == "ESP32":
+    controller = controllers.ESP32Controller(sys.argv[1])
 else:
     controller = None
 
@@ -77,8 +79,8 @@ if findMemoryZone is None:
     findMemoryZone = "AUTO" if controllerName != "BROADCOM" else "PATCHRAM"
 
 
-controller.setParameters(name, interfaceType, codeSize,codeStart,dataSize,dataStart,heapSize, findMemoryZone)
 if controller is not None:
+    controller.setParameters(name, interfaceType, codeSize,codeStart,dataSize,dataStart,heapSize, findMemoryZone)
     controller.extractFirmwareStructure()
     controller.extractFirmwareInformations()
 
@@ -95,3 +97,5 @@ if controller is not None:
 
     if not noGeneration:
         controller.generateTarget()
+else:
+    print("Unknown controller type, aborting.")

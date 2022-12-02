@@ -9,6 +9,8 @@ class BroadcomController(Controller):
         self.firmwarePath = filename
         with open(filename,"rb") as f:
             firmware = f.read()
+
+        self.instructions  = thumb.disassemble(firmware)
         Controller.__init__(self,firmware)
 
     def extractFirmwareStructure(self):

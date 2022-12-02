@@ -13,6 +13,8 @@ class NRF52ZephyrController(Controller):
         self.startOffset,firmware,self.codeSegment,self.instructionPointer = hextools.hexToInternal(filename)
         if self.startOffset > 0:
             firmware = self.startOffset*b"\x00" + firmware
+            
+        self.instructions  = thumb.disassemble(firmware)
         Controller.__init__(self,firmware)
 
     def extractFirmwareStructure(self):

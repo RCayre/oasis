@@ -4,6 +4,14 @@ from oasis.controllers.analysis.exceptions import AssemblyFailure,DisassemblyFai
 # Note: these functions are intented to be use as a replacement for pwnlib dependencies (to fix some versions-related issues)
 # This code is greatly inspired by pwntools project, especially pwnlib/asm.py : https://github.com/Gallopsled/pwntools
 
+XTENSA_HEADER = '''
+.section .shellcode,"awx"
+.global _start
+.global __start
+_start:
+__start:
+'''
+
 THUMB_HEADER = '''
 .section .shellcode,"awx"
 .global _start
@@ -27,26 +35,31 @@ __start:
 '''
 
 asm_headers = {
+    "xtensa":XTENSA_HEADER,
     "thumb":THUMB_HEADER,
     "arm":ARM_HEADER
 }
 
 asm_architectures = {
+    "xtensa":"xtensa",
     "arm":"arm",
     "thumb":"arm"
 }
 
 asm_targets = {
+    "xtensa":{"little":"elf32-xtensa-le", "big":"elf32-xtensa-be"},
     "arm":{"little":"elf32-littlearm", "big":"elf32-bigarm"},
     "thumb":{"little":"elf32-littlearm", "big":"elf32-bigarm"},
 }
 
 asm_tools = {
+    "xtensa":{"objcopy":"xtensa-esp32-elf-objcopy", "objdump":"xtensa-esp32-elf-objdump", "as":"xtensa-esp32-elf-as", "ld":"xtensa-esp32-elf-ld"},
     "arm":{"objcopy":"arm-none-eabi-objcopy", "objdump":"arm-none-eabi-objdump", "as":"arm-none-eabi-as", "ld":"arm-none-eabi-ld"},
     "thumb":{"objcopy":"arm-none-eabi-objcopy", "objdump":"arm-none-eabi-objdump", "as":"arm-none-eabi-as", "ld":"arm-none-eabi-ld"},
 }
 
 asm_as_flags = {
+    "xtensa":["--no-transform"],
     "arm":[],
     "thumb":["-mthumb"]
 }
@@ -66,6 +79,7 @@ def disasm(data, vma=0, arch="thumb", endianness="little"):
         objcopy += ["-w", "-N", "*"]
 
     out,err = exec.execute_with_output(objcopy+[rawFile,elfFile])
+
     if len(err) > 0:
         raise DisassemblyFailure
 
@@ -117,14 +131,18 @@ def asm(instructions,vma=0, arch="thumb", endianness="little"):
     with open(asmFile,"w") as f:
         f.write(code)
 
-    endiannessFlag = ["-EL"] if endianness == "little" else ["-EB"]
+    if arch in ("thumb", "asm"):
+        endiannessFlag = ["-EL"] if endianness == "little" else ["-EB"]
+    else:
+        endiannessFlag = []
     ast = [asm_tools[arch]["as"]] + asm_as_flags[arch] + endiannessFlag + ["-o"]
     out,err = exec.execute_with_output(ast+[assembledFile,asmFile])
-
+    print(out,err)
 
     ld_start = [asm_tools[arch]["ld"],"-z","execstack","-o"]
     ld_end = ['--section-start=.shellcode='+hex(vma), '--entry='+hex(vma), '-shared','-init=_start', '-z', 'max-page-size=4096','-z','common-page-size=4096']
     out,err = exec.execute_with_output(ld_start+[linkedFile,assembledFile]+ld_end)
+    print(err)
     if len(err) > 0:
         raise AssemblyFailure
 

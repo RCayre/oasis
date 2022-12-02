@@ -10,6 +10,7 @@ class SoftDeviceController(Controller):
     def __init__(self,filename):
         self.firmwarePath = filename
         self.startOffset,firmware,self.codeSegment,self.instructionPointer = hextools.hexToInternal(filename)
+        self.instructions  = thumb.disassemble(firmware)
         Controller.__init__(self,firmware)
 
     def extractFirmwareStructure(self):

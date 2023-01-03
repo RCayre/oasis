@@ -5,7 +5,7 @@ from oasis.controllers.analysis.exceptions import AssemblyFailure,DisassemblyFai
 # This code is greatly inspired by pwntools project, especially pwnlib/asm.py : https://github.com/Gallopsled/pwntools
 
 THUMB_HEADER = '''
-.section .shellcode,"awx"
+.section .shellcode,"ax"
 .global _start
 .global __start
 _start:
@@ -16,7 +16,7 @@ __start:
 '''
 
 ARM_HEADER = '''
-.section .shellcode,"awx"
+.section .shellcode,"ax"
 .global _start
 .global __start
 _start:

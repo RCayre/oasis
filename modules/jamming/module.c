@@ -6,7 +6,7 @@
 #include "alert.h"
 
 #define JAMMING_ALERT_NUMBER 5
-#define DETECTION_INTERVAL 5
+#define DETECTION_INTERVAL 25
 
 uint32_t interval;
 uint32_t number_of_packets[3];

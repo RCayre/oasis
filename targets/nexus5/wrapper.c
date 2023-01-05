@@ -204,7 +204,9 @@ void on_scan_rx_header() {
 
 void on_scan_rx() {
     current_gap_role = GAP_ROLE_SCANNER;
-    process_scan_rx();
+    if (is_rx_done()) {
+      process_scan_rx();
+    }
 }
 
 #endif

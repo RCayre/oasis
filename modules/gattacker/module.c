@@ -30,12 +30,16 @@ typedef struct gattacker_data {
 
 static hashmap_t * gattacker_hashmap = NULL;
 
+bool check_to_remove(void* entry) {
+  gattacker_data_t* data = (gattacker_data_t*)entry;
+  return ((now() - data->last_timestamp) > 1000000*5);
+}
 void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
   // Check if a packet was received
 
   if(get_adv_packet_type() == ADV_IND) {
     if(gattacker_hashmap == NULL) {
-      gattacker_hashmap = hashmap_initialize(HASHMAP_SIZE, NULL, 6);
+      gattacker_hashmap = hashmap_initialize(HASHMAP_SIZE,check_to_remove, 6);
     }
 
     // Get this device's data for detecting a gattacker attack

@@ -56,7 +56,7 @@ CFLAGS += -march=$(ARCH)
 CFLAGS += -ffreestanding
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
-CFLAGS += -O0
+CFLAGS += -Os
 CFLAGS += $(shell python3 $(SCRIPTS_DIR)/extract_target_info.py $(TARGET) gcc_flags)
 
 # Get tools compatible with the target

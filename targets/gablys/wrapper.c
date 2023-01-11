@@ -55,6 +55,14 @@
 #define RADIO_EVENTEND ((uint32_t*)0x4000110C)
 #define RADIO_PACKETPTR ((uint32_t*)0x40001504)
 
+// NVMC registers
+#define NVMC_READY ((uint32_t*)0x4001E400)
+#define NVMC_CONFIG ((uint32_t*)0x4001E504)
+#define NVMC_ERASEPAGE ((uint32_t*)0x4001E508)
+#define NVMC_ERASEALL ((uint32_t*)0x4001E50C)
+#define NVMC_ERASEPCR0 ((uint32_t*)0x4001E510)
+#define NVMC_ERASEUICR ((uint32_t*)0x4001E514)
+
 // Type definitions
 typedef struct
 {
@@ -82,6 +90,48 @@ uint32_t command = NO_COMMAND;
 
 // Internals global variables used by the wrapper
 static uint32_t millis = 0;
+
+// NVMC control
+void nvmc_erase_page(uint32_t address)
+{
+  // Enable erase.
+  *NVMC_CONFIG = 2;
+  while (*NVMC_READY == 0){}
+
+  // Erase the page
+  *NVMC_ERASEPAGE = address;
+  while (*NVMC_READY == 0){}
+
+  *NVMC_CONFIG = 0;
+  while (*NVMC_READY == 0){}
+}
+
+
+void nvmc_write_byte(uint32_t address, uint8_t value)
+{
+  uint32_t byte_shift = address & (uint32_t)0x03;
+  uint32_t address32 = address & ~byte_shift; // Address to the word this byte is in.
+  uint32_t value32 = (*(uint32_t*)address32 & ~((uint32_t)0xFF << (byte_shift << (uint32_t)3)));
+  value32 = value32 + ((uint32_t)value << (byte_shift << 3));
+
+  // Enable write.
+  *NVMC_CONFIG = 1;
+  while (*NVMC_READY == 0){}
+
+  *(uint32_t*)address32 = value32;
+  while (*NVMC_READY == 0){}
+
+  *NVMC_CONFIG = 0;
+}
+
+void nvmc_write_bytes(uint32_t address, uint8_t * src, uint32_t num_bytes)
+{
+  uint32_t i;
+  for(i=0;i<num_bytes;i++)
+  {
+     nvmc_write_byte(address+i,src[i]);
+  }
+}
 
 #ifdef SCAN_ENABLED
 uint8_t last_scan_channel = 0;
@@ -164,6 +214,8 @@ void timer2_init() {
 
     *TIMER2_START = 1;
     *TIMER2_CLEAR = 1;
+
+
 }
 
 uint32_t get_timestamp() {
@@ -358,6 +410,10 @@ void on_init() {
     uint32_t RAM_ZONE_START = (uint32_t)CODE_START - (uint32_t)DATA_SIZE;
     memcpy((void*)DATA_START, (void*)RAM_ZONE_START,(uint32_t)DATA_SIZE);
     timer2_init();
+
+    //nvmc_erase_page(0x25e88);
+    //uint8_t test[4] = {0x61,0x62, 0x63, 0x64 };
+    //nvmc_write_bytes(0x25f48, test, 4);
 }
 
 #ifdef CONNECTION_ENABLED

@@ -32,7 +32,7 @@ def monitor(address,size,target):
     printedValue = b""
     try:
         while True:
-            value = interface.read(address,size,target)
+            value = interface.read(address,size)
             if value != printedValue:
                 printedValue = value
                 print(printedValue.hex())

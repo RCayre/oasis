@@ -1,4 +1,4 @@
-from oasis.controllers.softdevice import SoftDeviceController
+from oasis.controllers.softdevice import SoftDeviceController, Controller
 from oasis.controllers.analysis import patterns,exceptions,thumb
 from oasis.controllers.generators import patch_generator,linker_generator,conf_generator, wrapper_generator
 
@@ -120,7 +120,7 @@ class NRF51SoftDeviceController(SoftDeviceController):
                 if "ldr" in instructions2[0] and "bx" in instructions2[-1] and "lr" in instructions2[-1]:
                     pointer = thumb.extractTargetAddressFromLoadOrStore(instructions2[0])
                     gapRoleAddress = thumb.extractValue(self.firmware[pointer:pointer+4])
-                    breakIT
+                    break
         if gapRoleAddress is not None:
             return gapRoleAddress
         else:
@@ -362,7 +362,7 @@ class NRF51SoftDeviceController(SoftDeviceController):
             self.memoryZones["data_start"] = stackPointer - self.memoryZones["data_size"]
 
         capabilities = {i:self.firmwareInformations[i] for i in Controller.CAPABILITIES}
-        configuration = conf_generator.generateConfiguration(self.name,capabilities,elf.memoryZones["code_start"],self.memoryZones["code_size"], self.memoryZones["data_start"],self.memoryZones["data_size"],self.heapSize, self.firmwareStructure, self.interfaceType, architecture=self.firmwareInformations["architecture"], file_type=self.firmwareInformations["file_type"], gcc_flags=self.firmwareInformations["gcc_flags"])
+        configuration = conf_generator.generateConfiguration(self.name,capabilities,self.memoryZones["code_start"],self.memoryZones["code_size"], self.memoryZones["data_start"],self.memoryZones["data_size"],self.heapSize, self.firmwareStructure, self.interfaceType, architecture=self.firmwareInformations["architecture"], file_type=self.firmwareInformations["file_type"], gcc_flags=self.firmwareInformations["gcc_flags"])
         return configuration
 
     def generateWrapper(self):

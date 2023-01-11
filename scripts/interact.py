@@ -58,11 +58,14 @@ def interact(command, target, params=[]):
         try:
             for log in interface.log():
                 msg = dissectors.parse_log_message(log)
-                log_line = "<"+target+"> ["+str(time.time())+"] "+msg
-                print(log_line)
-                if len(params) > 0:
-                    with open(params[0], "a") as f:
-                        f.write(log_line+"\n")
+                try:
+                    log_line = "<"+target+"> ["+str(time.time())+"] "+msg
+                    print(log_line)
+                    if len(params) > 0:
+                        with open(params[0], "a") as f:
+                            f.write(log_line+"\n")
+                except TypeError:
+                    pass
                 sys.stdout.flush()
                 sys.stderr.flush()
 
@@ -127,6 +130,8 @@ def interact(command, target, params=[]):
                 except:
                     print("Please provide a valid size.")
                     exit(4)
+            else:
+                size = 4
         else:
             patches = patch_parser.getMapping(target)
             if patches is None:

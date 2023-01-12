@@ -31,12 +31,12 @@ def parse_alert_btlejack_message(message):
     return {"type":"BTLEJACK", "access_address":access_address}
 
 def parse_alert_btlejuice_message(message):
-    bd_address = ":".join(["{:02x}".format(i) for i in message])
-    return {"type":"BTLEJUICE", "bd_address":access_address}
+    bd_address = ":".join(["{:02x}".format(i) for i in message[::-1]])
+    return {"type":"BTLEJUICE", "bd_address":bd_address}
 
 def parse_alert_gattacker_message(message):
-    bd_address = ":".join(["{:02x}".format(i) for i in message])
-    return {"type":"GATTACKER", "bd_address":access_address}
+    bd_address = ":".join(["{:02x}".format(i) for i in message[::-1]])
+    return {"type":"GATTACKER", "bd_address":bd_address}
 
 def parse_alert_injectable_message(message):
     access_address,  = struct.unpack("I", message)

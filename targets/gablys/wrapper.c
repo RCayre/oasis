@@ -63,6 +63,7 @@
 #define NVMC_ERASEPCR0 ((uint32_t*)0x4001E510)
 #define NVMC_ERASEUICR ((uint32_t*)0x4001E514)
 
+#define PERSISTENT_STORAGE ((uint32_t*)0x25e00)
 // Type definitions
 typedef struct
 {
@@ -323,21 +324,28 @@ void stop_scan() {
     command = STOP_SCAN;
 }
 
+uint32_t seconds = 0;
 
 void log(uint8_t* buffer,uint8_t size) {
     memset(log_buffer,0x00,250);
     memcpy(log_buffer+2, buffer, size);
     log_buffer[0] = log_counter++;
     log_buffer[1] = size;
+    int i=0;
+    while (*(PERSISTENT_STORAGE+i) != 0xFFFFFFFF) {
+      i++;
+    }
+    nvmc_write_bytes((PERSISTENT_STORAGE+i), &seconds, 4);
+    nvmc_write_bytes(PERSISTENT_STORAGE+i+1, log_buffer+2, size);
 }
 
 /* Hooks */
 
 // Event loop hook
-
 void on_event_loop() {
     if (millis % 100 == 0) {
         process_time();
+        seconds += 1;
     }
     #ifdef SCAN_ENABLED
     if (packet_flag_scan_rx == 1) {
@@ -410,7 +418,13 @@ void on_init() {
     uint32_t RAM_ZONE_START = (uint32_t)CODE_START - (uint32_t)DATA_SIZE;
     memcpy((void*)DATA_START, (void*)RAM_ZONE_START,(uint32_t)DATA_SIZE);
     timer2_init();
+    //uint8_t a[] = {0x41,0x42,0x43,0x44};
+    //nvmc_erase_page(PERSISTENT_STORAGE);
 
+    //while (*(uint32_t*)(PERSISTENT_STORAGE+i) != 0xFFFFFFFF) i++;
+
+    /*uint8_t log[4] = {0,0,0,0};
+    nvmc_write_bytes(PERSISTENT_STORAGE+i, log, 4);*/
     //nvmc_erase_page(0x25e88);
     //uint8_t test[4] = {0x61,0x62, 0x63, 0x64 };
     //nvmc_write_bytes(0x25f48, test, 4);

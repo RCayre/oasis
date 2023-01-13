@@ -122,7 +122,7 @@ void process_conn_rx(bool adapt_timestamp) {
 	if (current_packet->valid) {
 		copy_buffer(current_packet->content,get_packet_size());
 	}
-
+	#ifdef INTERVAL_ESTIMATION_ENABLED
 	if(conn_timestamp_hashmap == NULL) {
     conn_timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 4);
   }
@@ -143,6 +143,8 @@ void process_conn_rx(bool adapt_timestamp) {
 			*(uint32_t *)previous_timestamp = current_packet->timestamp;
 		}
 	}
+	#endif
+
 	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_rx_timestamp_callbacks = now();
 	#endif
@@ -178,7 +180,9 @@ void process_conn_delete() {
 	for(int i = 0; i < conn_delete_callbacks_size; i++) {
 		conn_delete_callbacks[i](&metrics);
 	}
+	#ifdef INTERVAL_ESTIMATION_ENABLED
 	hashmap_delete(conn_timestamp_hashmap, (uint8_t*)&metrics.current_connection->access_address);
+	#endif
 
 	#ifdef TIMING_MEASUREMENT
 	timing_measures.conn_delete_timestamp_end = now();

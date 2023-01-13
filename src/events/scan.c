@@ -60,7 +60,7 @@ void process_scan_rx() {
 
         memcpy(metrics.remote_device->address,dissector->adv_address,6);
         metrics.remote_device->address_type = get_tx_address_type();
-
+        #ifdef INTERVAL_ESTIMATION_ENABLED
         if(scan_timestamp_hashmap == NULL) {
           scan_timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 6);
         }
@@ -70,8 +70,7 @@ void process_scan_rx() {
           // We need to allocate memory as the hashmap takes ownership of the data
           uint32_t * current_timestamp_ptr = (uint32_t *) malloc(sizeof(uint32_t));
           *current_timestamp_ptr = current_packet->timestamp;
-          hashmap_put(scan_timestamp_hashmap, dissector->adv_address, current_timestamp_ptr);
-
+          int err = hashmap_put(scan_timestamp_hashmap, dissector->adv_address, current_timestamp_ptr);
           metrics.remote_device->advertisements_interval = 0;
         } else {
           // Compute the frame interval
@@ -79,11 +78,13 @@ void process_scan_rx() {
           // Save the new timestamp
           *(uint32_t *)previous_timestamp = current_packet->timestamp;
         }
+        #endif
       }
     }
     #ifdef TIMING_MEASUREMENT
     timing_measures.scan_timestamp_callbacks = now();
     #endif
+
     for(int i = 0; i < scan_callbacks_size; i++) {
       scan_callbacks[i](&metrics);
     }

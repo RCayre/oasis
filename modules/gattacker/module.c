@@ -36,10 +36,9 @@ bool check_to_remove(void* entry) {
 }
 void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
   // Check if a packet was received
-
   if(get_adv_packet_type() == ADV_IND) {
     if(gattacker_hashmap == NULL) {
-      gattacker_hashmap = hashmap_initialize(HASHMAP_SIZE,check_to_remove, 6);
+      gattacker_hashmap = hashmap_initialize(HASHMAP_SIZE,NULL, 6);
     }
 
     // Get this device's data for detecting a gattacker attack

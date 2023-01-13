@@ -6,11 +6,8 @@
 typedef struct block {
   uint16_t size;
   uint8_t free;
-  #ifdef ALIGNED_MALLOC
-    uint8_t pad;
-  #endif
   struct block * next;
-} block_t;
+} __attribute__((packed, aligned(4))) block_t;
 
 /**
  * @brief Allocates memory

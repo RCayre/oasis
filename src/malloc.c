@@ -3,7 +3,7 @@
 
 
 // Memory region to be used for allocating data
-__attribute__((section(".bss.memory")))
+//__attribute__((section(".bss.memory")))
 uint8_t memory[HEAP_SIZE];
 
 // A linked list of the blocks in memory
@@ -64,9 +64,6 @@ uint8_t merge_if_possible(block_t * b, uint16_t size) {
 }
 
 void * malloc(uint16_t size) {
-  #ifdef ALIGNED_MALLOC
-    while ((size % 4) != 0) size++;
-  #endif
   // Initialize the memory if new
   if(blocks == NULL) {
     blocks = (block_t*)memory;

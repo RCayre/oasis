@@ -185,6 +185,7 @@ ble_gap_scan_params_t scan_parameters =
 };
 /* Generic Wrapper API */
 // Utilities functions
+__attribute__((optimize("O3")))
 void * memcpy(void * dst, void * src, uint32_t size) {
 	for (int i=0;i<size;i++) {
 		*(uint8_t*)(dst+i) = *(uint8_t*)(src+i);
@@ -306,6 +307,7 @@ void copy_access_addr(uint32_t * dst) {
 }
 #endif
 /* Actions API */
+__attribute__((optimize("O0")))
 uint32_t sd_ble_gap_scan_start(ble_gap_scan_params_t* p_scan_params) {
     __asm__("svc 0x8a");
 }
@@ -331,12 +333,12 @@ void log(uint8_t* buffer,uint8_t size) {
     memcpy(log_buffer+2, buffer, size);
     log_buffer[0] = log_counter++;
     log_buffer[1] = size;
-    int i=0;
+    /*int i=0;
     while (*(PERSISTENT_STORAGE+i) != 0xFFFFFFFF) {
       i++;
     }
     nvmc_write_bytes((PERSISTENT_STORAGE+i), &seconds, 4);
-    nvmc_write_bytes(PERSISTENT_STORAGE+i+1, log_buffer+2, size);
+    nvmc_write_bytes(PERSISTENT_STORAGE+i+1, log_buffer+2, size);*/
 }
 
 /* Hooks */
@@ -437,6 +439,7 @@ void on_init_connection() {
 #endif
 
 // Radio interrupt hook
+__attribute__((optimize("O3")))
 void on_radio_interrupt() {
     if (*RADIO_EVENTEND == 1) {
         #ifdef SCAN_ENABLED
@@ -446,8 +449,8 @@ void on_radio_interrupt() {
                 last_scan_timestamp = get_timestamp();
                 last_scan_crc_ok = get_crc();
                 last_scan_channel = get_current_channel();
-                rssi = *RADIO_RSSI;
-                memcpy(tmp_scan_buffer,(void*)*RADIO_PACKETPTR,40);
+                //rssi = *RADIO_RSSI;
+                memcpy(tmp_scan_buffer,(void*)*RADIO_PACKETPTR,25);
             }
         }
         #endif
@@ -458,7 +461,7 @@ void on_radio_interrupt() {
                 last_conn_timestamp = get_timestamp();
                 last_conn_crc_ok = get_crc();
                 last_conn_channel = get_current_channel();
-                rssi = *RADIO_RSSI;
+                //rssi = *RADIO_RSSI;
                 memcpy(tmp_conn_buffer,(void*)*RADIO_PACKETPTR,25);
             }
             /*

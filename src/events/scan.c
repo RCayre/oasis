@@ -4,6 +4,7 @@
 #include "hashmap.h"
 #include "malloc.h"
 #include "timing.h"
+#include "whitelist.h"
 
 #ifdef SCAN_ENABLED
 
@@ -61,22 +62,24 @@ void process_scan_rx() {
         memcpy(metrics.remote_device->address,dissector->adv_address,6);
         metrics.remote_device->address_type = get_tx_address_type();
         #ifdef INTERVAL_ESTIMATION_ENABLED
-        if(scan_timestamp_hashmap == NULL) {
-          scan_timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 6);
-        }
-        uint32_t* previous_timestamp = hashmap_get(scan_timestamp_hashmap, dissector->adv_address);
-        if(previous_timestamp == NULL) {
-          // Add the timestamp to the hashmap
-          // We need to allocate memory as the hashmap takes ownership of the data
-          uint32_t * current_timestamp_ptr = (uint32_t *) malloc(sizeof(uint32_t));
-          *current_timestamp_ptr = current_packet->timestamp;
-          int err = hashmap_put(scan_timestamp_hashmap, dissector->adv_address, current_timestamp_ptr);
-          metrics.remote_device->advertisements_interval = 0;
-        } else {
-          // Compute the frame interval
-          metrics.remote_device->advertisements_interval = current_packet->timestamp - *(uint32_t *)previous_timestamp;
-          // Save the new timestamp
-          *(uint32_t *)previous_timestamp = current_packet->timestamp;
+        if (is_in_whitelist(metrics.remote_device->address)) {
+          if(scan_timestamp_hashmap == NULL) {
+            scan_timestamp_hashmap = hashmap_initialize(TIMESTAMP_HASHMAP_SIZE, NULL, 6);
+          }
+          uint32_t* previous_timestamp = hashmap_get(scan_timestamp_hashmap, dissector->adv_address);
+          if(previous_timestamp == NULL) {
+            // Add the timestamp to the hashmap
+            // We need to allocate memory as the hashmap takes ownership of the data
+            uint32_t * current_timestamp_ptr = (uint32_t *) malloc(sizeof(uint32_t));
+            *current_timestamp_ptr = current_packet->timestamp;
+            int err = hashmap_put(scan_timestamp_hashmap, dissector->adv_address, current_timestamp_ptr);
+            metrics.remote_device->advertisements_interval = 0;
+          } else {
+            // Compute the frame interval
+            metrics.remote_device->advertisements_interval = current_packet->timestamp - *(uint32_t *)previous_timestamp;
+            // Save the new timestamp
+            *(uint32_t *)previous_timestamp = current_packet->timestamp;
+          }
         }
         #endif
       }

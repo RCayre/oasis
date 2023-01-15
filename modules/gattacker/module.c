@@ -4,6 +4,7 @@
 #include "packet.h"
 #include "hashmap.h"
 #include "malloc.h"
+#include "whitelist.h"
 #include "alert.h"
 
 #define GATTACKER_ALERT_NUMBER 3
@@ -36,7 +37,8 @@ bool check_to_remove(void* entry) {
 }
 void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
   // Check if a packet was received
-  if(get_adv_packet_type() == ADV_IND) {
+  if(get_adv_packet_type() == ADV_IND && is_in_whitelist(metrics->remote_device->address)) {
+
     if(gattacker_hashmap == NULL) {
       gattacker_hashmap = hashmap_initialize(HASHMAP_SIZE,NULL, 6);
     }

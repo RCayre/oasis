@@ -333,12 +333,12 @@ void log(uint8_t* buffer,uint8_t size) {
     memcpy(log_buffer+2, buffer, size);
     log_buffer[0] = log_counter++;
     log_buffer[1] = size;
-    /*int i=0;
+    int i=0;
     while (*(PERSISTENT_STORAGE+i) != 0xFFFFFFFF) {
       i++;
     }
     nvmc_write_bytes((PERSISTENT_STORAGE+i), &seconds, 4);
-    nvmc_write_bytes(PERSISTENT_STORAGE+i+1, log_buffer+2, size);*/
+    nvmc_write_bytes(PERSISTENT_STORAGE+i+1, log_buffer+2, size);
 }
 
 /* Hooks */

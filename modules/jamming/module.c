@@ -11,6 +11,7 @@
 uint32_t interval;
 uint32_t number_of_packets[3];
 uint32_t number_of_invalid_packets[3];
+uint32_t under_attack[3];
 
 void SCAN_CALLBACK(jamming)(metrics_t * metrics) {
   if (metrics->current_packet->valid) {
@@ -34,15 +35,30 @@ void TIME_CALLBACK(jamming)(metrics_t * metrics) {
 
       if (number_of_packets[0] == 0) {
         uint32_t continuous_jamming_detected = 37;
-        alert(JAMMING_ALERT_NUMBER,(uint8_t*)&continuous_jamming_detected,4);
+        under_attack[0]++;
+        if (under_attack[0] > 3)
+          alert(JAMMING_ALERT_NUMBER,(uint8_t*)&continuous_jamming_detected,4);
+      }
+      else {
+        under_attack[0] = 0;
       }
       if (number_of_packets[1] == 0) {
         uint32_t continuous_jamming_detected = 38;
-        alert(JAMMING_ALERT_NUMBER,(uint8_t*)&continuous_jamming_detected,4);
+        under_attack[1]++;
+        if (under_attack[1] > 3)
+          alert(JAMMING_ALERT_NUMBER,(uint8_t*)&continuous_jamming_detected,4);
+      }
+      else {
+        under_attack[1] = 0;
       }
       if (number_of_packets[2] == 0) {
         uint32_t continuous_jamming_detected = 39;
-        alert(JAMMING_ALERT_NUMBER,(uint8_t*)&continuous_jamming_detected,4);
+        under_attack[2]++;
+        if (under_attack[2] > 3)
+          alert(JAMMING_ALERT_NUMBER,(uint8_t*)&continuous_jamming_detected,4);
+      }
+      else {
+        under_attack[2] = 0;
       }
 
       number_of_packets[0] = 0;

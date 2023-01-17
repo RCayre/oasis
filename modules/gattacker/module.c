@@ -11,7 +11,7 @@
 
 #define MAX_ADV_DELAY 10000
 
-#define WINDOW_SIZE 36
+#define WINDOW_SIZE 32
 #define HASHMAP_SIZE 16
 #define HASHMAP_TIMEOUT 1000
 
@@ -25,7 +25,7 @@ typedef struct gattacker_data {
   circ_buffer_t window;
   uint8_t last_channel;
   uint32_t threshold;
-  bool under_attack;
+  int under_attack;
   uint32_t last_timestamp;
 } gattacker_data_t;
 
@@ -114,15 +114,22 @@ void SCAN_CALLBACK(gattacker)(metrics_t * metrics) {
       if(!data->threshold || min > data->threshold + MAX_ADV_DELAY) {
         data->threshold = min - MAX_ADV_DELAY;
       }
-
+      if (metrics->remote_device->address[0] == 0x52) {
+        uint8_t buf[8];
+        memcpy(buf, &min, 4);
+        memcpy(buf+4, &data->threshold, 4);
+        alert(0x41, buf, 8);
+      }
       /*********************************************************/
       /*                 Detect a MITM attack                  */
       /*********************************************************/
 
       if(min < data->threshold) {
         // If we go below the threshold
-        data->under_attack = 1;
-        alert(GATTACKER_ALERT_NUMBER, metrics->remote_device->address,6);
+        data->under_attack += 1;
+        if (data->under_attack > 50) {
+          alert(GATTACKER_ALERT_NUMBER, metrics->remote_device->address,6);
+        }
       } else if(data->under_attack) {
         // If we were under attack and we go above the threshold
         data->under_attack = 0;

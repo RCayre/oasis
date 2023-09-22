@@ -8,8 +8,7 @@
 #@toolbar 
 
 
-import json
-import os
+import json, os, argparse, sys
 
 class Tools:
 	def hexToBinary(self, hexa_str):
@@ -547,12 +546,9 @@ class SearchBased:
 
 		return False
 
-	def run(self):
+	def run(self, path):
 		# File path for the JSON table you want to use
-		file_path = "tables/table_broadcom.json"
-		current_directory = os.getcwd()
-		absolute_path = os.path.join(current_directory, file_path)
-		with open(absolute_path, 'r') as json_file:
+		with open(path, 'r') as json_file:
 			# Load JSON data from the file
 			patterns = json.load(json_file)
 
@@ -614,4 +610,5 @@ class SearchBased:
 				break
 
 if __name__ == "__main__":
-	SearchBased().run()
+	path = os.environ.get('TABLE')
+	SearchBased().run(path)

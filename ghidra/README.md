@@ -2,7 +2,7 @@
 Use Ghidra API to automatize the pattern searching in the firmware analyzer module of the OASIS framework
 
 # Folders
-- `script/` : scripts who use the Ghidra API
+- `scripts/` : scripts who use the Ghidra API
 - `tables/` : tables for different architecture (Broadcom (complete at 70%), NRF51-Softdevice, NRF52-Zephyr)
 
 # How to use
@@ -12,16 +12,16 @@ Use Ghidra API to automatize the pattern searching in the firmware analyzer modu
 4. How to use `analyzeHeadless` :
    
 `
-/usr/share/ghidra/support/analyzeHeadless <folder project Ghidra> <name project[/folder]> -noanalysis -process <binary> -postScript <script>
+/usr/share/ghidra/support/analyzeHeadless <folder project Ghidra> <name project[/folder]> -noanalysis -process <binary> -scriptPath <script_path_folder> -postScript <script_file>
 `
 
 An example : 
 
 `
-/usr/share/ghidra/support/analyzeHeadless Ghidra/ FirmwareAnalyzis -noanalysis -process zephyr_nrf52_firmware.hex -postScript script/SearchPattern.py
+/usr/share/ghidra/support/analyzeHeadless Ghidra/ FirmwareAnalyzis -noanalysis -process zephyr_nrf52_firmware.hex -scriptPath scripts -postScript SearchPattern.py
 `
 
-5. Don't forget to change inside the `SearchPattern.py` script the table you want to use in order to target a specific architecture
+5. Set the env variable `TABLE` with the JSON table you want you want to target a specific architecture (ex: export TABLE=tables/table_nrf52.json)
 6. Run the script at the same level than the README
 7. See the results
 

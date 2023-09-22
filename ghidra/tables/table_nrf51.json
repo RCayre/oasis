@@ -1,0 +1,65 @@
+[
+    {
+        "func": "radio_interrupt",
+        "instr": "push,1,(4194304:r3);ldr,2,(512:r0),(8320:000123fc);ldr,2,(512:r1),(8320:00012408)",
+        "hexa": "f8b5 6a48 6c49",
+        "diff": "0",
+        "regs": "40001540",
+        "specs": "null",
+        "pcode": "1,20,3,20,3,20,3,20,3,20,3,20,3,1;1;1"
+    },
+    {
+        "func": "set_channel_map",
+        "instr": "ldrb,2,(512:r3),(4194304:r1);strb,2,(512:r3),(4194304:r0);bx,1,(512:lr)",
+        "hexa": "0b79 0371 7047",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "19,2,17;19,63,3;27,12,1,27,10"
+    },
+    {
+        "func": "set_crc_init",
+        "instr": "lsls,3,(512:r0),(512:r0),(16384:0x8);null;lsrs,3,(512:r0),(512:r0),(16384:0x8);null;bx,1,(512:lr)",
+        "hexa": "0002 fd49 000a c863 7047",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "20,29,27,11,39,12,12,39,40,29,13,11,1,1,1;null;1,20,30,27,11,39,12,12,39,40,30,13,11,1,1,1;null;27,12,1,27,10"
+    },
+    {
+        "func": "set_bd_address",
+        "instr": "ldrb,2,(512:r2),(4194304:r1);strb,2,(512:r2),(4194304:r0);bx,1,(512:lr)",
+        "hexa": "4a79 4271 7047",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "19,2,17;19,63,3;27,12,1,27,10"
+    },
+    {
+        "func": "init_connection",
+        "instr": "adds,2,(512:r6),(16384:0x60);adds,2,(512:r4),(16384:0x74)",
+        "hexa": "6036 7434",
+        "diff": "1",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "21,22,19,13,11,1,1,1,1;21,22,19,13,11,1,1,1,1"
+    },
+    {
+        "func": "init_softdevice",
+        "instr": "svc,1,(16384:0x10)",
+        "hexa": "10df",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "9"
+    },
+    {
+        "func": "wait_softdevice",
+        "instr": "svc,1,(16384:0x48)",
+        "hexa": "48df",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "9"
+    }
+]

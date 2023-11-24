@@ -53,7 +53,7 @@ class BroadcomController(Controller):
     def extractRtMemcpy(self):
         rtMemcpyAddress = None
         pattern1 = patterns.generatePattern([
-            {"instruction":"cmp r2,#0x3"},
+             {"instruction":"cmp r2,#0x3"},
             {"joker":4},
             {"instruction":"ands r12,r0,#0x3"},
             {"joker":4},
@@ -145,8 +145,8 @@ class BroadcomController(Controller):
         pattern1 = patterns.generatePattern([
             {"instruction":"push {r4,r5,r6,lr}"},
             {"instruction":"mov r4,r0"},
-            {"instruction":"ldr r5,[r0,<X>]","X":["#0x50","#0x48"]},
-            {"instruction":"ldrb.w r0,[r0,<X>]","X":["#0x79","#0x81"]}
+            {"instruction":"ldr r5,[r0,<X>]","X":["#0x50","#0x48", "#0x54"]},
+            {"instruction":"ldrb.w r0,[r0,<X>]","X":["#0x79","#0x81", "#0x85"]}
         ])
         pattern2 = patterns.generatePattern([
         {"instruction":"ldrb.w <Y>,[r0,<X>]","X":["#0x79","#0x81"],"Y":["r1","r2","r3","r4"]},
@@ -159,11 +159,15 @@ class BroadcomController(Controller):
         if connTaskSlotIntAddress is not None:
             # Find ROM Connection Task callbacks address
             candidates = [address for address in patterns.findPattern(self.firmware,patterns.generateFunctionPointerPattern(connTaskSlotIntAddress))]
+
             if len(candidates) > 1:
                 candidates = [candidate for candidate in candidates if candidate < self.firmwareStructure["rom"][1]] # if we got multiple candidates, select the ones in ROM
                 set1 = set([self.firmware[candidate-12:candidate-8] for candidate in candidates])
                 set2 = set([self.firmware[candidate-8:candidate-4] for candidate in candidates])
                 set3 = set([self.firmware[candidate-4:candidate-0] for candidate in candidates])
+                if len(set1) > 1:
+                    set1 = set([max(set1)])
+
             if len(candidates) == 1 or (len(candidates) > 1 and len(set1) == 1 and len(set2) == 1 and len(set3) == 1):
                 baseConnectionTaskAddressRom = candidates[0] - 36
                 connTaskRxDoneAddress = thumb.extractAddressFromFunctionPointer(self.firmware[baseConnectionTaskAddressRom+24:baseConnectionTaskAddressRom+28])
@@ -175,11 +179,11 @@ class BroadcomController(Controller):
 
                 return (connTaskDeleteAddress,connTaskRxDoneAddress,connTaskTxDoneAddress,connTaskRxHeaderDoneAddress, connTaskSlotIntAddress)
             elif len(candidates) == 0:
-                raise exception.AddressNotFound
+                raise exceptions.AddressNotFound
             else:
-                raise exception.MultipleCandidateAddresses
+                raise exceptions.MultipleCandidateAddresses
         else:
-            raise exception.AddressNotFound
+            raise exceptions.AddressNotFound
 
     def extractScanAndInitTaskFunctions(self):
         initTaskRxDoneAddress = None
@@ -262,7 +266,7 @@ class BroadcomController(Controller):
                 scanTaskSlotIntAddress
             )
         else:
-            raise exception.AddressNotFound
+            raise exceptions.AddressNotFound
 
     def extractScanTaskRxPacketUpdateFunction(self):
         scanTaskRxPktUpdateAddress = None
@@ -280,7 +284,7 @@ class BroadcomController(Controller):
         if scanTaskRxPktUpdateAddress is not None:
             return scanTaskRxPktUpdateAddress
         else:
-            raise exception.AddressNotFound
+            raise exceptions.AddressNotFound
 
     def extractHciFunctions(self):
         allocateEventAndFillHeaderAddress = None
@@ -667,7 +671,7 @@ class BroadcomController(Controller):
                     instructions = instructions[instrIndex:]
                     break
             for instruction in instructions:
-                if "ldr " in instruction and ";" in instruction:
+                if "ldr " in instruction and (";" in instruction or "@" in instruction):
                     addressPointer = thumb.extractTargetAddressFromLoadOrStore(instruction)
                     rxRegister = thumb.extractValue(self.firmware[addressPointer:addressPointer+4])
                     break
@@ -675,15 +679,15 @@ class BroadcomController(Controller):
         if rxRegister is None:
             if "utils_memcpy8" not in self.functions or "scanTaskRxDone" not in self.functions:
                 raise exceptions.AddressNotFound
-
             instructions = list(thumb.exploreInstructions(self.instructions[self.functions["scanTaskRxDone"]:self.functions["scanTaskRxDone"]+2048]))
 
             for instrIndex in range(len(instructions)):
                 if "bl" in instructions[instrIndex] and hex(self.functions["utils_memcpy8"])[2:] in instructions[instrIndex]:
                     for instruction in instructions[instrIndex-8:instrIndex][::-1]:
-                        if "ldr" in instruction and "r1" in instruction and "pc" in instruction and ";" in instruction:
+                        if "ldr" in instruction and "r1" in instruction and "pc" in instruction and (";" in instruction or "@" in instruction):
                             addressPointer = thumb.extractTargetAddressFromLoadOrStore(instruction)
                             rxRegister = thumb.extractValue(self.firmware[addressPointer:addressPointer+4])
+
                             break
         if rxRegister is not None:
             return rxRegister

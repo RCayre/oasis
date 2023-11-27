@@ -24,6 +24,7 @@ class BroadcomController(Controller):
             {"joker":4},
             {"value":"00000900"}
         ])
+
         if len([address for address in patterns.findPattern(self.firmware,pattern)]) > 0:
             self.firmwareInformations["hci_implementation"] = "new"
         else:
@@ -159,12 +160,76 @@ class BroadcomController(Controller):
         if connTaskSlotIntAddress is not None:
             # Find ROM Connection Task callbacks address
             candidates = [address for address in patterns.findPattern(self.firmware,patterns.generateFunctionPointerPattern(connTaskSlotIntAddress))]
+            if len(candidates) == 0:
+
+                connTaskRxHeaderDoneAddress = None
+                pattern3 = patterns.generatePattern([
+                {"instruction":"bic r0, r0, #0xff00"},
+                {"instruction":"mov.w r2, #0xff00"},
+                ])
+                for address in patterns.findPattern(self.firmware,pattern3):
+                    instructions = list(thumb.exploreInstructions(self.instructions[address-64:address]))
+                    for instrIndex in range(len(instructions)-1):
+                        if "push" in instructions[instrIndex] and "lr" in instructions[instrIndex]:
+                            connTaskRxHeaderDoneAddress = thumb.extractInstructionAddress(instructions[instrIndex])
+                            break
+
+                connTaskRxDoneAddress = None
+                pattern3 = patterns.generatePattern([
+                {"instruction":"strh.w     r6,[r4,#0x8c]"},
+                {"instruction":"strb.w     r6,[r4,#0x9d]"},
+                ])
+                for address in patterns.findPattern(self.firmware,pattern3):
+                    instructions = list(thumb.exploreInstructions(self.instructions[address-64:address]))
+                    for instrIndex in range(len(instructions)-1):
+                        if "push" in instructions[instrIndex] and "lr" in instructions[instrIndex]:
+                            connTaskRxDoneAddress = thumb.extractInstructionAddress(instructions[instrIndex])
+                            break
+
+
+                connTaskTxDoneAddress = None
+                pattern3 = patterns.generatePattern([
+                    {"instruction":"push {r4, r5, r6, r7, r8, r9, r10, lr}"},
+                    {"instruction":"mov r4, r0"},
+                    {"joker":2},
+                    {"instruction":"adds r0, #0x44"},
+                ])
+
+                for address in patterns.findPattern(self.firmware,pattern3):
+                    connTaskTxDoneAddress = address
+                    break
+
+
+                connTaskDeleteAddress = None
+                pattern3 = patterns.generatePattern([
+                    {"instruction":"movs r0, #0"}, #0x24"},
+                    {"instruction":"bx lr"},
+                    {"value":"24307047"},
+                ])
+
+                candidateList = [address for address in patterns.findPattern(self.firmware,pattern3)]
+                if len(candidateList) > 0:
+                    candidatesDict = {candidate:abs(connTaskTxDoneAddress - candidate) for candidate in candidateList}
+                    minDistance = None
+                    bestCandidate = None
+                    for candidateAddress, distance in candidatesDict.items():
+                        if minDistance is None or minDistance >= distance:
+                            minDistance = distance
+                            bestCandidate = candidateAddress
+                    connTaskDeleteAddress = bestCandidate
+                else:
+                    connTaskDeleteAddress = None
+                if connTaskDeleteAddress is not None and connTaskRxDoneAddress is not None and connTaskTxDoneAddress is not None and connTaskRxHeaderDoneAddress is not None and connTaskSlotIntAddress is not None:
+                    return (connTaskDeleteAddress,connTaskRxDoneAddress,connTaskTxDoneAddress,connTaskRxHeaderDoneAddress, connTaskSlotIntAddress)
+                else:
+                    return exceptions.AddressNotFound
 
             if len(candidates) > 1:
                 candidates = [candidate for candidate in candidates if candidate < self.firmwareStructure["rom"][1]] # if we got multiple candidates, select the ones in ROM
                 set1 = set([self.firmware[candidate-12:candidate-8] for candidate in candidates])
                 set2 = set([self.firmware[candidate-8:candidate-4] for candidate in candidates])
                 set3 = set([self.firmware[candidate-4:candidate-0] for candidate in candidates])
+
                 if len(set1) > 1:
                     set1 = set([max(set1)])
 
@@ -333,6 +398,8 @@ class BroadcomController(Controller):
             else:
                 raise exceptions.AddressNotFound
         else:
+            allocateHciEventAddress = None
+            sendHciEventAddress = None
             pattern1 = patterns.generatePattern([
                 {"instruction":"push {r4-r6,lr}"},
                 {"instruction":"mov r5,r0"},
@@ -346,6 +413,7 @@ class BroadcomController(Controller):
                 {"instruction":"mov r5,r0"},
 
             ])
+
             for address in patterns.findPattern(self.firmware,pattern1):
                 allocateHciEventAddress = address
                 break
@@ -883,7 +951,21 @@ class BroadcomController(Controller):
                 self.functions["bthci_event_AttemptToEnqueueEventToTransport"]
             ) = self.extractHciFunctions()
         except exceptions.AddressNotFound:
-            print("HCI Functions: functions not found !")
+            try:
+                if self.firmwareInformations["hci_implementation"] == "old":
+                    self.firmwareInformations["hci_implementation"] = "new"
+                else:
+                    self.firmwareInformations["hci_implementation"] = "old"
+                (
+                    self.functions["bthci_event_AllocateEventAndFillHeader"],
+                    self.functions["bthci_event_AttemptToEnqueueEventToTransport"]
+                ) = self.extractHciFunctions()
+            except exceptions.AddressNotFound:
+                print("HCI Functions: functions not found !")
+
+            except exceptions.MultipleCandidateAddresses:
+                print("HCI Functions: multiple candidates !")
+
         except exceptions.MultipleCandidateAddresses:
             print("HCI Functions: multiple candidates !")
 

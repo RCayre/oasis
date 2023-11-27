@@ -129,11 +129,13 @@ class NRF51SoftDeviceController(SoftDeviceController):
     def extractInterruptType(self):
         if "radio_interrupt" not in self.functions:
             raise exceptions.AddressNotFound
+
         interruptTypeAddress = None
         instructions = list(thumb.exploreInstructions(self.instructions[self.functions["radio_interrupt"]:self.functions["radio_interrupt"]+1024]))
         ldrbInstruction = None
         # find main ISR type
         for instruction in instructions:
+            print(instruction)
             if "ldrb" in instruction:
                 baseRegister = thumb.extractBaseRegisterFromLoadOrStore(instruction)
                 offset = thumb.extractOffsetFromLoadOrStore(instruction)

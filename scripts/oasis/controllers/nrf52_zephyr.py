@@ -86,7 +86,7 @@ class NRF52ZephyrController(Controller):
     def extractRadioIsDone(self):
         pattern = patterns.generatePattern([
             {"value":"034b"},
-            {"instruction":"ldr.w r0,[r3,#0x10c]"},
+            {"instruction":"ldr.w r0,[r3,<X>]", "X":["#0x10c", "#0x16c"]},
             {"instruction":"subs r0,#0"}
         ])
         radioIsDoneAddress = None
@@ -380,8 +380,13 @@ class NRF52ZephyrController(Controller):
             {"instruction":"mov r1,r0"},
             {"instruction":"ldr r0,[r3,#0]"}
         ])
+
+        pattern3 = patterns.generatePattern([
+            {"instruction":"push {r4, r5, r6,lr}"},
+            {"instruction":"ldrb <X>, [r0, #0x14]; cmp <X>, #0x1", "X":["r1","r3", "r5"]}
+        ])
         btRecvAddress = None
-        for i in patterns.findPattern(self.firmware,patterns.generateAlternatives(pattern1,pattern2)):
+        for i in patterns.findPattern(self.firmware,patterns.generateAlternatives(pattern1,pattern2, pattern3)):
             btRecvAddress  = i
             break
 
@@ -399,8 +404,12 @@ class NRF52ZephyrController(Controller):
             {"instruction":"bx r3"}
         ])
 
+        pattern2 = patterns.generatePattern([
+            {"instruction":"push {r4, r5, r6, lr}"},
+            {"value":"067d0446"}
+        ])
         btSendAddress = None
-        for i in patterns.findPattern(self.firmware,pattern):
+        for i in patterns.findPattern(self.firmware,patterns.generateAlternatives(pattern,pattern2)):
             btSendAddress  = i
             break
 

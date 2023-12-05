@@ -1,7 +1,7 @@
 from oasis.controllers.softdevice import SoftDeviceController, Controller
 from oasis.controllers.analysis import patterns,exceptions,thumb
 from oasis.controllers.generators import patch_generator,linker_generator,conf_generator, wrapper_generator
-
+from struct import unpack
 class NRF51SoftDeviceController(SoftDeviceController):
 
     def extractFirmwareInformations(self):
@@ -30,9 +30,10 @@ class NRF51SoftDeviceController(SoftDeviceController):
 
 
     def extractSetChannelMap(self):
+
         pattern = patterns.generatePattern([
-            {"instruction":"ldrb r3,[r1,#4]"},
-            {"instruction":"strb r3,[r0,#4]"},
+            {"instruction":"ldrb <X>,[r1,#4]", "X":["r3"]},
+            {"instruction":"strb <X>,[r0,#4]", "X":["r3"]},
             {"instruction":"bx lr"}
 
         ])
@@ -51,17 +52,17 @@ class NRF51SoftDeviceController(SoftDeviceController):
             raise exceptions.AddressNotFound
 
     def extractSetCrcInit(self):
-        pattern = patterns.generatePattern([
+        pattern1 = patterns.generatePattern([
             {"instruction":"lsls r0,r0,#8"},
     	    {"joker":2},
     	    {"instruction":"lsrs r0,r0,#8"},
     	    {"joker":2},
-    	    {"instruction":"bx lr"},
+    	    {"instruction":"<X>", "X":["bx lr", "pop {r4, pc}"]},
         ])
         setCrcInitAddress = None
 
-        for i in patterns.findPattern(self.firmware,pattern):
-            setCrcInitAddress = i-24
+        for i in patterns.findPattern(self.firmware,pattern1):
+            setCrcInitAddress = (i-24) if "pop" not in self.instructions[i+8] else (i-6)
             break
 
         if setCrcInitAddress  is not None:
@@ -81,6 +82,18 @@ class NRF51SoftDeviceController(SoftDeviceController):
             setBdAddressAddress = i-20
             break
 
+        # Method 2
+        if setBdAddressAddress is None and "memcpy" in self.functions:
+            candidates = []
+            for reference in thumb.findReferences(self.instructions, self.functions["memcpy"]):
+                instructions = list(thumb.exploreInstructions(self.instructions[reference-12:reference]))
+                for instrIndex in range(1, len(instructions)-1):#print(self.instructions[reference-4:reference])
+                    if (
+                        "push" in instructions[instrIndex-1] and
+                        "mov" in instructions[instrIndex] and "r2" in instructions[instrIndex] and "#6" in instructions[instrIndex] and
+                        "adds" in instructions[instrIndex+1] and "r0" in instructions[instrIndex+1] and "#3" in instructions[instrIndex+1]
+                        ):
+                        setBdAddressAddress =  thumb.extractInstructionAddress(instructions[instrIndex-1])
         if setBdAddressAddress  is not None:
             return setBdAddressAddress
         else:
@@ -88,15 +101,27 @@ class NRF51SoftDeviceController(SoftDeviceController):
 
 
     def extractInitConnection(self):
-        pattern = patterns.generatePattern([
+        initConnectionAddress = None
+        if "memcpy" in self.functions:
+            pattern = patterns.generatePattern([
+                {"instruction":"push {r3-r7, lr}"},
+                {"joker":4},
+                {"instruction":"cmp r1, #1"}
+            ])
+            candidates = []
+            for reference in thumb.findReferences(self.instructions, self.functions["memcpy"]):
+                for i in patterns.findPattern(self.firmware[reference-512:reference], pattern):
+                    initConnectionAddress = i+reference-512
+                    break
+        else:
+            pattern = patterns.generatePattern([
             {"instruction":"adds r6,#0x60"},
             {"instruction":"adds r4,<X>","X":["#0x74","#0x78"]},
-        ])
-        initConnectionAddress = None
+            ])
 
-        for i in patterns.findPattern(self.firmware,pattern):
-            initConnectionAddress = i-8
-            break
+            for i in patterns.findPattern(self.firmware,pattern):
+                initConnectionAddress = i-8
+                break
 
         if initConnectionAddress  is not None:
             return initConnectionAddress
@@ -135,13 +160,13 @@ class NRF51SoftDeviceController(SoftDeviceController):
         ldrbInstruction = None
         # find main ISR type
         for instruction in instructions:
-            print(instruction)
             if "ldrb" in instruction:
                 baseRegister = thumb.extractBaseRegisterFromLoadOrStore(instruction)
                 offset = thumb.extractOffsetFromLoadOrStore(instruction)
                 ldrbInstruction = instruction
                 break
         if ldrbInstruction is not None:
+
             for instruction in instructions[:instructions.index(ldrbInstruction)][::-1]:
                 if baseRegister+", [" in instruction and "ldr" in instruction:
                     pointer = thumb.extractTargetAddressFromLoadOrStore(instruction)
@@ -168,6 +193,8 @@ class NRF51SoftDeviceController(SoftDeviceController):
 
         if interruptTypeAddress is not None and interruptTypeCentralAddress is not None:
             return (interruptTypeAddress,interruptTypeCentralAddress)
+        elif interruptTypeAddress is not None:
+            return (interruptTypeAddress,None)
         else:
             raise exceptions.AddressNotFound
 
@@ -192,6 +219,7 @@ class NRF51SoftDeviceController(SoftDeviceController):
                     secondRegister = None
                     instructions2 = list(thumb.exploreInstructions(self.instructions[i-512:i]))
                     for instruction2 in instructions2:
+
                         if "str" in instruction2 and "["+baseRegister+"," in instruction2 and "#"+str(offset) in instruction2:
                             loadingInstructions = instructions2[instructions2.index(instruction2)-5:instructions2.index(instruction2)+1]
                             sourceRegister = thumb.extractDestRegisterFromLoadOrStore(loadingInstructions[-1])
@@ -204,7 +232,7 @@ class NRF51SoftDeviceController(SoftDeviceController):
                                 break
                         if secondRegister is not None:
                             for instruction2 in loadingInstructions:
-                                if "ldr" in instruction2 and secondRegister in instruction2 and ";" in instruction2:
+                                if "ldr" in instruction2 and secondRegister in instruction2 and (";" in instruction2 or "@" in instruction2):
                                     pointer = thumb.extractTargetAddressFromLoadOrStore(instruction2)
                                     value = thumb.extractValue(self.firmware[pointer:pointer+4])
                                     variableValue = value+offsetAdd
@@ -255,6 +283,57 @@ class NRF51SoftDeviceController(SoftDeviceController):
         else:
             raise exceptions.AddressNotFound
 
+    def extractMemcpy(self):
+        pattern = patterns.generatePattern([
+        {"instruction":"push {r3-r7, lr}"},
+        {"instruction":"cmp r2, #4"},
+        {"joker":2},
+        {"instruction":"lsls r3, r0, #0x1e"},
+        ])
+        memcpyAddress = None
+
+        for i in patterns.findPattern(self.firmware, pattern):
+            memcpyAddress = i
+            break
+        if memcpyAddress is not None:
+            return memcpyAddress
+        else:
+            raise exceptions.AddressNotFound
+
+    def extractChannelMap(self):
+        if "init_connection" not in self.functions:
+            raise exceptions.AddressNotFound
+        instructions = list(thumb.exploreInstructions(self.instructions[self.functions["init_connection"]:self.functions["init_connection"] + 512]))
+
+        addsOffset = None
+        loadOffset = None
+        pointerAddress = None
+        connectionStructureAddress = None
+        for instrIndex in range(len(instructions)-4):
+            if (
+                "mov" in instructions[instrIndex] and
+                "r2" in instructions[instrIndex] and
+                "#5" in instructions[instrIndex] and
+                "adds" in instructions[instrIndex+2] and
+                "r0" in instructions[instrIndex+2]
+            ):
+                addsOffset = thumb.extractOffsetFromAddOrSub(instructions[instrIndex+2])
+
+                for instruction in list(instructions[instrIndex-80:instrIndex])[::-1]:
+                    if "ldr" in instruction and "r0" in instruction and "r4" in instruction:
+                        loadOffset = int(instruction.split(" ")[-1].split("]")[0].replace("#", ""))
+                    if "pc" in instruction:
+                        pointerAddress = thumb.extractTargetAddressFromLoadOrStore(instruction)
+                    if addsOffset is not None and loadOffset is not None and pointerAddress is not None:
+                        connectionStructureAddress = unpack("I", self.firmware[pointerAddress:pointerAddress+4])[0]  + loadOffset
+                        break
+                if connectionStructureAddress is not None:
+                    break
+        if connectionStructureAddress is not None and addsOffset is not None:
+            return connectionStructureAddress, addsOffset
+        else:
+            raise exceptions.AddressNotFound
+
     def extractFunctions(self):
         try:
             self.functions["radio_interrupt"] = self.extractRadioInterrupt()
@@ -262,9 +341,18 @@ class NRF51SoftDeviceController(SoftDeviceController):
             print("Radio Interrupt: function not found !")
 
         try:
+            self.functions["set_crc_init"] = self.extractSetCrcInit()
+        except exceptions.AddressNotFound:
+            print("Set Crc Init: function not found !")
+
+        try:
             self.functions["set_channel_map"] = self.extractSetChannelMap()
         except exceptions.AddressNotFound:
-            print("Set Channel Map: function not found !")
+            try:
+                self.functions["memcpy"] = self.extractMemcpy()
+            except exceptions.AddressNotFound:
+                print("Memcpy not found !")
+                print("Set Channel Map: function not found !")
 
         try:
             self.functions["set_channel"] = self.extractSetChannel()
@@ -275,11 +363,6 @@ class NRF51SoftDeviceController(SoftDeviceController):
             self.functions["set_access_address"] = self.extractSetAccessAddress()
         except exceptions.AddressNotFound:
             print("Set Access Address: function not found !")
-
-        try:
-            self.functions["set_crc_init"] = self.extractSetCrcInit()
-        except exceptions.AddressNotFound:
-            print("Set Crc Init: function not found !")
 
         try:
             self.functions["set_bd_address"] = self.extractSetBdAddress()
@@ -299,6 +382,7 @@ class NRF51SoftDeviceController(SoftDeviceController):
             self.functions["wait_softdevice"] = self.extractWaitSoftdevice()
         except exceptions.AddressNotFound:
             print("Wait SoftDevice: function not found !")
+
     def extractDatas(self):
         try:
             self.datas["gap_role"] = self.extractGapRole()
@@ -313,7 +397,15 @@ class NRF51SoftDeviceController(SoftDeviceController):
         try:
             self.datas["hop_interval"] = self.extractHopInterval()
         except exceptions.AddressNotFound:
-            print("ISR Type: data not found !")
+            print("Hop interval: data not found !")
+        except:
+            print("Hop interval: data not found !")
+
+        if "set_channel_map" not in self.functions and "init_connection" in self.functions:
+            try:
+                self.datas["connection_structure"], self.datas["channel_map_offset"] = self.extractChannelMap()
+            except exceptions.AddressNotFound:
+                print("Channel Map: function not found !")
 
     def generateCapabilities(self):
         self.firmwareInformations["scanner"] = True

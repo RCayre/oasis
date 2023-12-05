@@ -53,7 +53,7 @@ class SoftDeviceController(Controller):
     def extractSetAccessAddress(self):
         pattern = patterns.generatePattern([
             {"instruction":"lsls <X>,<X>,#8","X":["r0","r3"]},
-            {"instruction":"<X>","X":["adds r1,#12","str r0,[r1,#0]","orrs r0,r3"]}
+            {"instruction":"<X>","X":["str r0,[r4, #28]", "adds r1,#12","str r0,[r1,#0]","orrs r0,r3"]}
         ])
         setAccessAddressAddress = None
 

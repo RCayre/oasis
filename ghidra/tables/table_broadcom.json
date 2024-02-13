@@ -1,0 +1,101 @@
+[
+    {
+        "func": "utils_memcpy_8",
+        "instr": "push,1,(4194304:r4);cmp,2,(512:r2),(16384:0x20)",
+        "hexa": "2de9f003 202a",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "20,3,20,3,20,3,20,3,20,3,20,3,20,19;16,23,20,13,11,1,1,1,1"
+    },
+    {
+        "func": "__rt_memcpy",
+        "instr": "cmp,2,(512:r2),(16384:0x3);null;ands,3,(512:r12),(512:r0),(4194304:0x3);null;ldrb.w,2,(512:r3),(4194304:r1)",
+        "hexa": "032a 40f23080 10f0030c 00f01580 11f8013b",
+        "diff": "1",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "16,23,20,13,11,1,1,1,1;null;1,1,27,13,11,1,1;null;1,19,2,17"
+    },
+    {
+        "func": "btclk_GetNatClk_clkpclk",
+        "instr": "ldr,2,(512:r2),(4202496:r1);str,2,(8704:r2),(4194304:r0)",
+        "hexa": "4a68 0260",
+        "diff": "1",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "19,2;19,3"
+    },
+    {
+        "func": "btclk_Convert_clkpclk_us",
+        "instr": "ldr,2,(512:r0),(4194304:r0);movw,2,(512:r2),(16384:0x271)",
+        "hexa": "0068 40f27122",
+        "diff": "1",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "19,2;17,13,11"
+    },
+    {
+        "func": "bcsulp_setupWhitening",
+        "instr": "orr,3,(512:r2),(512:r2),(4194304:0x300000)",
+        "hexa": "42f44012",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "1,30,63,28,1,1,13,11"
+    },
+    {
+        "func": "lculp_createAccessAddress",
+        "instr": "push,1,(4194304:r4);bl,1,(8256:0001ca3e);null;null",
+        "hexa": "10b5 a9f77af9 c0f30e00 c0f30011",
+        "diff": "1",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "1,20,3,20,3,1;28,1,1,7;1,1,19,20,29,20,30;1,1,19,20,29,20,30"
+    },
+    {
+        "func": "scanTaskRxPktUpdate",
+        "instr": "null",
+        "hexa": "c0f34100",
+        "diff": "1",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "1,1,19,20,29,20,30"
+    },
+    {
+        "func": "advTaskProgHw",
+        "instr": "orr,3,(512:r0),(512:r0),(4194304:0x400040)",
+        "hexa": "40f04010",
+        "diff": "1",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "1,1,28,1,1,13,11"
+    },
+    {
+        "func": "osapi_waitEvent",
+        "instr": "strd,3,(512:r3),(512:r5),(4202496:sp);mov,2,(512:r4),(512:r1);add,2,(512:r3),(4194304:sp)",
+        "hexa": "cde90035 0c46 01ab",
+        "diff": "1",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "19,1,3,19,3;1;19,1;"
+    },
+    {
+        "func": "lm_getRawRssiWithTaskId",
+        "instr": "add,2,(512:r0),(512:r1);sxtb,2,(512:r0),(512:r0);bx,1,(512:lr)",
+        "hexa": "0844 40b2 7047",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "19;63,18;27,12,1,27,10"
+    },
+    {
+        "func": "connTaskSlotInt",
+        "instr": "push,1,(4194304:r4);mov,2,(512:r4),(512:r0);ldr,2,(512:r5),(4194304:r0);ldrb.w,2,(512:r0),(4194304:r0)",
+        "hexa": "70b5 0446 056d 90f88100",
+        "diff": "1",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "1,20,3,20,3,20,3,20,3,1;1;19,2;19,2,17"
+    }
+]

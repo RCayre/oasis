@@ -1,0 +1,218 @@
+[
+    {
+        "func": "lll_scan_prepare_connect_req",
+        "instr": "push,1,(4194304:r4);ldrb.w,2,(512:r5),(4202496:sp)",
+        "hexa": "2de9f041 9df81c50",
+        "diff": "0",
+        "regs": "null",
+        "specs": "lll_scan,lll_scan_aux",
+        "pcode": "20,3,20,3,20,3,20,3,20,3,20,3,20,19;19,2,17"
+    },
+    {
+        "func": "lll_conn_prepare_pdu_tx",
+        "instr": "push,1,(4194304:r4);mov,2,(512:r4),(512:r0);sub,2,(512:sp),(4194304:0xc);add,2,(512:r2),(4194304:sp)",
+        "hexa": "2de9f043 0446 83b0 01aa",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,19;1;1,20;19,1"
+    },
+    {
+        "func": "conn_isr_tx",
+        "instr": "push,1,(4194304:r3);mov,2,(512:r4),(512:r0);null;movs,2,(512:r0),(16384:0x96)",
+        "hexa": "38b5 0446 fef728fd 9620",
+        "diff": "0",
+        "regs": "null",
+        "specs": "lll_conn,lll_central & param of the radio_isr_set function",
+        "pcode": "1,20,3,20,3,20,3,20,3,1;1;null;1,13,11,1,1"
+    },
+    {
+        "func": "ull_central_setup",
+        "instr": "push,1,(4194304:r4);null;sub,2,(512:sp),(4194304:0x3c);mov,2,(512:r4),(512:r0)",
+        "hexa": "2de9f04f 8046 8fb0 0446",
+        "diff": "1",
+        "regs": "null",
+        "specs": "ull_conn",
+        "pcode": "20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,19;null;1,20;1"
+    },
+    {
+        "func": "ull_central_cleanup",
+        "instr": "ldr,2,(512:r3),(4194304:r0);push,1,(4194304:r4);ldr,2,(512:r5),(4194304:r3);ldr,2,(512:r4),(4194304:r5)",
+        "hexa": "8368 70b5 1d68 2c6a",
+        "diff": "0",
+        "regs": "null",
+        "specs": "ull",
+        "pcode": "19,2;1,20,3,20,3,20,3,20,3,1;19,2;19,2"
+    },
+    {
+        "func": "ull_peripheral_setup",
+        "instr": "push,1,(4194304:r4);ldr,2,(512:r3),(4194304:r1);null;ldr,2,(512:r3),(4194304:r3)",
+        "hexa": "2de9f04f 0b68 d2f800b0 1b68",
+        "diff": "1",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,19;19,2;null;19,2"
+    },
+    {
+        "func": "bt_enable_raw",
+        "instr": "null;null;ldr,2,(512:r3),(4202496:r3)",
+        "hexa": "044b 054a 1b68",
+        "diff": "0",
+        "regs": "null",
+        "specs": "hci_raw,bt_hci,bluetooth,bt_h4",
+        "pcode": "null;null;19,2"
+    },
+    {
+        "func": "bt_recv",
+        "instr": "push,1,(4194304:r4);null;ldrb,2,(512:r3),(4202496:r3)",
+        "hexa": "10b5 0d4b 1b78",
+        "diff": "1",
+        "regs": "null",
+        "specs": "hci_ecc,hci_raw,hci_driver",
+        "pcode": "1,20,3,20,3,1;null;19,2,17"
+    },
+    {
+        "func": "z_arm_reset",
+        "instr": "null;movs,2,(512:r0),(16384:0x20);null;null;mov.w,2,(512:r1),(4194304:0x820);adds,3,(512:r0),(512:r0),(512:r1)",
+        "hexa": "14f0aefd 2020 80f31188 0848 4ff40261 4018",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "null;1,13,11,1,1;null;null;1,30,63,1,13,11;21,22,19,13,11,1,1,1,1"
+    },
+    {
+        "func": "z_arm_configure_static_mpu_regions",
+        "instr": "null;null;null;movs,2,(512:r1),(16384:0x1)",
+        "hexa": "024b 034a 0348 0121",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "null;null;null;1,13,11,1,1"
+    },
+    {
+        "func": "memcpy",
+        "instr": "push,1,(4194304:r4);subs,3,(512:r3),(512:r0),(16384:0x1);add,2,(512:r2),(512:r1)",
+        "hexa": "10b5 431e 0a44",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "1,20,3,20,3,1;16,23,20,13,11,1,1,1,1;19"
+    },
+    {
+        "func": "radio_is_done",
+        "instr": "null;ldr.w,2,(512:r0),(4202496:[r3, 0x550]);subs,2,(512:r0),(16384:0x0)",
+        "hexa": "034b d3f80c01 0038 18bf 0120 7047",
+        "diff": "0",
+        "regs": "4000110c",
+        "specs": "lll_*",
+        "pcode": "null;19,2;16,23,20,13,11,1,1,1,1"
+    },
+    {
+        "func": "radio_rssi_get",
+        "instr": "null;ldr.w,2,(512:r0),(4202496:r3);bx,1,(512:lr)",
+        "hexa": "014b d3f84805 7047",
+        "diff": "0",
+        "regs": "40001548",
+        "specs": "lll_*",
+        "pcode": "null;19,2;27,12,1,27,10"
+    },
+    {
+        "func": "radio_crc_is_valid",
+        "instr": "null;ldr.w,2,(512:r0),(4202496:r3);subs,2,(512:r0),(16384:0x0)",
+        "hexa": "034b d3f80004 0038",
+        "diff": "0",
+        "regs": "40001400",
+        "specs": "lll_*",
+        "pcode": "null;19,2;16,23,20,13,11,1,1,1,1"
+    },
+    {
+        "func": "lll_adv_scan_req_check",
+        "instr": "push,1,(4194304:r4);ldrb.w,2,(512:r12),(4194304:r0);ldrb.w,2,(512:r8),(4202496:sp)",
+        "hexa": "2de9f041 90f809c0 9df81880",
+        "diff": "1",
+        "regs": "null",
+        "specs": "lll_adv_aux, lll_adv",
+        "pcode": "20,3,20,3,20,3,20,3,20,3,20,3,20,19;19,2,17;19,2,17"
+    },
+    {
+        "func": "advertiser_isr_rx",
+        "instr": "push,1,(4194304:r4);sub,2,(512:sp),(4194304:0x28);mov,2,(512:r4),(512:r0)",
+        "hexa": "2de9f047 8ab0 0446",
+        "diff": "0",
+        "regs": "null",
+        "specs": "& radio_is_done",
+        "pcode": "20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,19;1,20;1"
+    },
+    {
+        "func": "scan_isr_rx",
+        "instr": "push,1,(4194304:r4);sub,2,(512:sp),(4194304:0x24);mov,2,(512:r4),(512:r0);bl,1,(8256:00012560)",
+        "hexa": "2de9f04f 89b0 0446 10f0c2f9",
+        "diff": "0",
+        "regs": "null",
+        "specs": "& radio_is_done",
+        "pcode": "20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,19;1,20;1;28,1,1,7;63,17"
+    },
+    {
+        "func": "conn_isr_rx",
+        "instr": "push,1,(4194304:r4);sub,2,(512:sp),(4194304:0x14);mov,2,(512:r4),(512:r0);bl,1,(8256:00012560)",
+        "hexa": "2de9f04f 85b0 0446 00f094ff",
+        "diff": "0",
+        "regs": "null",
+        "specs": "& radio_is_done",
+        "pcode": "20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,3,20,19;1,20;1;28,1,1,7"
+    },
+    {
+        "func": "test_isr_rx",
+        "instr": "push,1,(4194304:r4);bl,1,(8256:00012560);uxtb,2,(512:r0),(512:r0)",
+        "hexa": "10b5 00f00bfb c0b2",
+        "diff": "0",
+        "regs": "null",
+        "specs": "& radio_is_done",
+        "pcode": "1,20,3,20,3,1;28,1,1,7;63,17"
+    },
+    {
+        "func": "bt_send",
+        "instr": "null;ldr,2,(512:r3),(4202496:r3);ldr,2,(512:r3),(4194304:r3);bx,1,(512:r3)",
+        "hexa": "014b 1b68 1b69 1847",
+        "diff": "1",
+        "regs": "null",
+        "specs": "hci_raw, bt_hci, bluetooth, bt_h4, conn, hci_core",
+        "pcode": "null;19,2;19,2;27,12,1,27,6"
+    },
+    {
+        "func": "bt_hci_evt_create",
+        "instr": "push,1,(4194304:r4);mov.w,2,(512:r2),(4194304:0xffffffff);mov,2,(512:r5),(512:r1);mov.w,2,(512:r3),(4194304:0xffffffff);movs,2,(512:r1),(16384:0x0)",
+        "hexa": "70b5 4ff0ff32 0d46 4ff0ff33 0021",
+        "diff": "0",
+        "regs": "null",
+        "specs": "hci_common & net_buf_simple_add",
+        "pcode": "1,20,3,20,3,20,3,20,3,1;1,1,1,13,11;1;1,1,1,13,11;1,13,11,1,1"
+    },
+    {
+        "func": "net_buf_simple_add",
+        "instr": "ldrh,2,(512:r3),(4194304:r0);ldr,2,(512:r2),(4194304:r0);add,2,(512:r1),(512:r3);strh,2,(512:r1),(4194304:r0);adds,3,(512:r0),(512:r2),(512:r3);bx,1,(512:lr)",
+        "hexa": "8388 0268 1944 8180 d018 7047",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "19,2,17;19,2;19;19,63,3;21,22,19,13,11,1,1,1,1;27,12,1,27,10"
+    },
+    {
+        "func": "ll_addr_get",
+        "instr": "cmp,2,(512:r0),(16384:0x1);mov,2,(512:r3),(512:r0)",
+        "hexa": "0128 0346",
+        "diff": "1",
+        "regs": "null",
+        "specs": "ll_addr, ull_scan, ull_adv, ull_central",
+        "pcode": "16,23,20,13,11,1,1,1,1;1"
+    },
+    {
+        "func": "idle",
+        "instr": "push,1,(4194304:r3);null;mov.w,2,(512:r2),(4194304:0x20)",
+        "hexa": "08b5 094c 4ff02002",
+        "diff": "0",
+        "regs": "null",
+        "specs": "null",
+        "pcode": "1,20,3,20,3,1;null;1,1,1,13,11"
+    }
+]
